@@ -32,20 +32,27 @@ module status_register_file #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1
             o_data_init <= 1'h0;
             o_valid     <= 1'h0;
         end
-        else if(~i_halt & i_valid) begin
-            if(i_wen) begin
-                reg_file[i_addr] <= i_data;
-                r_reg_file_word_init[i_addr] <= i_valid;
+        else if(~i_halt) begin
+            if(i_valid) begin                
+                if(i_wen) begin
+                    reg_file[i_addr] <= i_data;
+                    r_reg_file_word_init[i_addr] <= i_valid;
 
-                // set output zero
+                    // set output zero
+                    o_data      <= {WORD_WIDTH{1'h0}};
+                    o_data_init <= 1'h0;
+                    o_valid     <= 1'h0;
+                end
+                else begin
+                    o_data      <= reg_file[i_addr];
+                    o_data_init <= r_reg_file_word_init[i_addr];
+                    o_valid     <= i_valid;
+                end
+            end
+            else begin
                 o_data      <= {WORD_WIDTH{1'h0}};
                 o_data_init <= 1'h0;
                 o_valid     <= 1'h0;
-            end
-            else begin
-                o_data      <= reg_file[i_addr];
-                o_data_init <= r_reg_file_word_init[i_addr];
-                o_valid     <= i_valid;
             end
         end
     end
@@ -55,8 +62,8 @@ module status_register_file #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1
         if(~arst_n) begin
             o_tag <= {TAG_WIDTH{1'h0}};
         end
-        else if(~i_halt & i_valid) begin
-            o_tag <= i_tag;
+        else if(~i_halt) begin
+            o_tag <= i_tag & {TAG_WIDTH{i_valid}};
         end
     end
 
