@@ -1,1 +1,4 @@
 diagrams/.$cache_architecture.drawio.bkp
+sim/a.out
+.gitignore
+sim/wave.vcd
