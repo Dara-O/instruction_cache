@@ -11,6 +11,7 @@ program main_program #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1) (
     output	logic	 		i_halt,
     input	logic	 [TAG_WIDTH-1:0]	o_tag,
     input	logic	 [WORD_WIDTH-1:0]	o_data,
+    input	logic	 		o_data_init,
     input	logic	 		o_valid,
     input	logic	 		o_freeze_inputs
 );
@@ -28,6 +29,7 @@ program main_program #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1) (
     // sampled
     logic	 [TAG_WIDTH-1:0]	o_tag_s;
     logic	 [WORD_WIDTH-1:0]	o_data_s;
+    logic	 		o_data_init_s;
     logic	 		o_valid_s;
     logic	 		o_freeze_inputs_s;
 
@@ -136,6 +138,7 @@ program main_program #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1) (
     
         o_tag_s	<=	o_tag;
         o_data_s	<=	o_data;
+        o_data_init_s	<=	o_data_init;
         o_valid_s	<=	o_valid;
         o_freeze_inputs_s	<=	o_freeze_inputs;
 
@@ -175,7 +178,6 @@ program main_program #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1) (
 
     task watch_dog();
         repeat(MAX_CYCLES) @(posedge dut_clk);
-        $display("WARNING: Watch dog timer finished.");
     endtask
     
 endprogram
@@ -197,6 +199,7 @@ module tb;
     logic 			i_halt;
     logic 	[TAG_WIDTH-1:0]	o_tag;
     logic 	[WORD_WIDTH-1:0]	o_data;
+    logic 			o_data_init;
     logic 			o_valid;
     logic 			o_freeze_inputs;
 
@@ -211,3 +214,4 @@ module tb;
         $dumpvars(0, tb);
     end
 endmodule
+
