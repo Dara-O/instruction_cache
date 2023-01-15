@@ -3,3 +3,4 @@ sim/a.out
 .gitignore
 sim/wave.vcd
 instruction_cache.code-workspace
+*.svg
