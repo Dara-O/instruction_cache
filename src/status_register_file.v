@@ -24,18 +24,21 @@ module status_register_file #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1
 
     always @(posedge clk, negedge arst_n) begin
         if(~arst_n) begin
-            reg_file = {(2**ADDR_WIDTH)*WORD_WIDTH{1'h0}};
+            reg_file <= {(2**ADDR_WIDTH)*WORD_WIDTH{1'h0}};
+
+            o_data  <= {WORD_WIDTH{1'h0}};
+            o_valid <= 1'h0;
         end
         else if(~i_halt & i_valid) begin
             if(i_wen) begin
-                reg_file[i_addr +: WORD_WIDTH]  <= i_data;
+                reg_file[i_addr*WORD_WIDTH +: WORD_WIDTH]  <= i_data;
 
                 // set output zero
                 o_data  <= {WORD_WIDTH{1'h0}};
                 o_valid <= 1'h0;
             end
             else begin
-                o_data  <= reg_file[i_addr +: WORD_WIDTH];
+                o_data  <= reg_file[i_addr*WORD_WIDTH +: WORD_WIDTH];
                 o_valid <= i_valid;
             end
         end
