@@ -102,6 +102,14 @@ program main_program #(parameter WORD_WIDTH=12, ADDR_WIDTH=3, TAG_WIDTH=1) (
             @(posedge drive_clk);
         end
 
+        i_tag_d     <= 1'h0;
+        i_addr_d    <= 3'b0;
+        i_data_d    <= 12'h0;
+        i_wen_d     <= 1'h0;
+        i_valid_d   <= 1'b0;
+        
+        @(posedge drive_clk);
+
         repeat(10) @(posedge drive_clk);
 
     endtask
