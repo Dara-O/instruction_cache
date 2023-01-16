@@ -4,3 +4,4 @@ sim/a.out
 sim/wave.vcd
 instruction_cache.code-workspace
 *.svg
+import/sram_macro_files/sky130_sram_1kbytes_1r1w_16x320_320_TT_1p8V_25C.lib
