@@ -71,7 +71,7 @@ program main_program #(parameter TAG_WIDTH=1) (
             i_addr_d    <= i;
             i_data_d    <= 'ha+i;
             i_wen_d     <= 1'h1;
-            i_wmask_d   <= 4'b1101;
+            i_wmask_d   <= 4'b1111;
             i_valid_d   <= 1'b1;
             
             if(i == 4) begin
