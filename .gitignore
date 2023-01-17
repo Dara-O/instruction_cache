@@ -9,3 +9,4 @@ import/sram_macro_files/*.lib
 *.gds
 *.lef
 *.dependencies
+*.gtkw
