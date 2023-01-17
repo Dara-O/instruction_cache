@@ -1,11 +1,15 @@
 `timescale 1ns/1ps
 
+/*
+    Status Array should be initialized after.
+*/
+
 module status_array #(parameter TAG_WIDTH=1) (
     input   wire    [TAG_WIDTH-1:0]         i_tag,
-    input   wire    [3:0]                   i_addr,
-    input   wire    [7:0]                   i_data,
+    input   wire    [ADDR_WIDTH-1:0]        i_addr,
+    input   wire    [ROW_WIDTH-1:0]         i_data,
     input   wire                            i_wen, // 1 means write, 0 means read
-    input   wire    [3:0]                   i_wmask, // positional encoding of blocks to write. 1 means block is written. There are four blocks, 2 bits each
+    input   wire    [NUM_BLOCKS-1:0]        i_wmask, // positional encoding of blocks to write. 1 means block is written.
     input   wire                            i_valid,
 
     input   wire                            clk,
@@ -13,29 +17,28 @@ module status_array #(parameter TAG_WIDTH=1) (
     input   wire                            i_halt,
 
     output  reg     [TAG_WIDTH-1:0]         o_tag,
-    output  reg     [7:0]                   o_data,
-    output  reg                             o_data_init, // 1 if the data is from an initialized word, else 0
+    output  reg     [ROW_WIDTH-1:0]         o_data,
     output  reg                             o_valid,
     output  wire                            o_ready
 );
-    
+    // To aid understanding...
+    localparam NUM_ROWS = 16;
+    localparam ADDR_WIDTH = $clog2(NUM_ROWS);
+    localparam NUM_BLOCKS = 4;
+    localparam BLOCK_WIDTH = 2;
+    localparam ROW_WIDTH = NUM_BLOCKS*BLOCK_WIDTH;
+
     assign o_ready = ~i_halt;
 
     wire gated_clk;
-    wire [7:0] ss_data;
-
-    assign o_data = ss_data & {8{o_valid}};
+    wire [ROW_WIDTH-1:0] ss_data;
 
     clock_gater cg (
       .clk(clk),
       .stop_clock(i_halt),
       .gated_clock(gated_clk)
-    );
-  
+    );  
     
-    reg     [15:0]  r_word_init;
-    wire    [7:0]   ss_dout;   
-
     sky130_sram_0kbytes_1r1w_16x8_2 status_sram (
         .clk0(gated_clk),
         .csb0(~(i_valid & i_wen)),
@@ -48,37 +51,28 @@ module status_array #(parameter TAG_WIDTH=1) (
         .addr1(i_addr),
         .dout1(ss_data)
     );
-
+        
+    reg r_wen;
+    
     always @(posedge gated_clk, negedge arst_n) begin
-        if(~arst_n) begin            
-            r_word_init <= 16'h0;
-            o_valid     <= 1'h0;
-        end
-        else if(i_valid) begin                
-            if(i_wen) begin
-                r_word_init[i_addr] <= i_valid;
-                
-                // set output zero
-                o_data_init <= 1'h0;
-                o_valid     <= 1'h0;
-            end
-            else begin
-                o_data_init <= r_word_init[i_addr];
-                o_valid     <= i_valid;
-            end
+        if(~arst_n) begin
+            o_valid <= 1'b0;
+            r_wen   <= 1'b0;
         end
         else begin
-            o_data_init <= 1'h0;
-            o_valid     <= 1'h0;
+            o_valid <= i_valid & ~i_wen;
+            r_wen   <= i_wen;
         end
     end
+    
+    assign o_data =  ss_data & {8{~r_wen & o_valid}};
 
     // tag propagation
     always @(posedge gated_clk, negedge arst_n) begin
         if(~arst_n) begin
             o_tag <= {TAG_WIDTH{1'h0}};
         end
-        else if(~i_halt) begin
+        else begin
             o_tag <= i_tag & {TAG_WIDTH{i_valid}};
         end
     end
