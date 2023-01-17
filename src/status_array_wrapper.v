@@ -84,4 +84,24 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
             end
         endcase
     end
+
+    status_array #(.TAG_WIDTH(TAG_WIDTH)) stat_array (
+      .i_tag(r_tag),
+      .i_addr(r_addr),
+      .i_data(r_data),
+      .i_wen(r_wen),
+      .i_wmask(r_wmask),
+      .i_valid(r_valid),
+
+      .clk(clk),
+      .arst_n(arst_n),
+      .i_halt(i_halt),
+
+      .o_tag(o_tag),
+      .o_data(o_data),
+      .o_valid(o_valid),
+      .o_ready(o_ready)
+    );
+
+
 endmodule
