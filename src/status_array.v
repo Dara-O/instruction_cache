@@ -21,12 +21,8 @@ module status_array #(parameter TAG_WIDTH=1) (
     output  reg                             o_valid,
     output  wire                            o_ready
 );
-    // To aid understanding...
-    localparam NUM_ROWS = 16;
-    localparam ADDR_WIDTH = $clog2(NUM_ROWS);
-    localparam NUM_BLOCKS = 4;
-    localparam BLOCK_WIDTH = 2;
-    localparam ROW_WIDTH = NUM_BLOCKS*BLOCK_WIDTH;
+    // See file for params...
+    `include "shared_params.vh"
 
     assign o_ready = ~i_halt;
 
