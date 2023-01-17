@@ -4,6 +4,9 @@
     Status Array should be initialized after.
 */
 
+// See file for params...
+`include "shared_params.vh"
+
 module status_array #(parameter TAG_WIDTH=1) (
     input   wire    [TAG_WIDTH-1:0]         i_tag,
     input   wire    [ADDR_WIDTH-1:0]        i_addr,
@@ -21,8 +24,7 @@ module status_array #(parameter TAG_WIDTH=1) (
     output  reg                             o_valid,
     output  wire                            o_ready
 );
-    // See file for params...
-    `include "shared_params.vh"
+    
 
     assign o_ready = ~i_halt;
 
