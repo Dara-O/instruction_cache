@@ -61,7 +61,7 @@ module status_array #(parameter TAG_WIDTH=1) (
         end
     end
     
-    assign o_data =  ss_data & {8{~r_wen & o_valid}};
+    assign o_data =  ss_data & {ROW_WIDTH{~r_wen & o_valid}};
 
     // tag propagation
     always @(posedge gated_clk, negedge arst_n) begin
