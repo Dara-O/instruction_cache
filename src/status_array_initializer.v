@@ -43,11 +43,11 @@ module status_array_initializer(
         end
     end
 
-    reg r_addr_next; 
-    reg r_data_next; 
-    reg r_wen_next;  
-    reg r_wmask_next;
-    reg r_valid_next;
+    reg [ADDR_WIDTH-1:0]    r_addr_next; 
+    reg [ROW_WIDTH-1:0]     r_data_next; 
+    reg                     r_wen_next;  
+    reg [NUM_BLOCKS-1:0]    r_wmask_next;
+    reg                     r_valid_next;
 
     always @(posedge gated_clk, negedge arst_n) begin
         if(~arst_n) begin
@@ -90,7 +90,7 @@ module status_array_initializer(
     end
 
     localparam COUNTER_STOP = 2**(ADDR_WIDTH);
-    reg [ADDR_WIDTH-1:0] r_counter;
+    reg [ADDR_WIDTH:0] r_counter;
 
     assign w_counter_stop_reached = (r_counter === COUNTER_STOP);
 
