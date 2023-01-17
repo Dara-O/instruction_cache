@@ -32,7 +32,7 @@ module status_array_initializer(
     reg [1:0]   state_next;
 
     assign o_init_complete = (r_state === _STATE_READY);
-    assign o_ready = o_init_complete | ~i_halt;
+    assign o_ready = o_init_complete & ~i_halt;
 
     always @(posedge gated_clk, negedge arst_n) begin
         if(~arst_n) begin
