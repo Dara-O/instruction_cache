@@ -8,3 +8,4 @@ import/sram_macro_files/sky130_sram_1kbytes_1r1w_16x320_320_TT_1p8V_25C.lib
 import/sram_macro_files/*.lib
 *.gds
 *.lef
+*.dependencies
