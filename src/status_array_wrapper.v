@@ -34,6 +34,9 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
     wire                    sai_init_complete;
     wire                    sai_ready;
 
+    wire sa_ready;
+    assign o_ready = sa_ready | sai_ready;
+
     status_array_initializer sa_initializer (
         .clk(clk),
         .arst_n(arst_n),
@@ -100,7 +103,7 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
       .o_tag(o_tag),
       .o_data(o_data),
       .o_valid(o_valid),
-      .o_ready(o_ready)
+      .o_ready(sa_ready)
     );
 
 
