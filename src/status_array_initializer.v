@@ -97,7 +97,7 @@ module status_array_initializer(
     // counter
     always @(posedge gated_clk, negedge arst_n) begin
         if(~arst_n) begin
-            r_counter <= {ADDR_WIDTH{1'b0}};
+            r_counter <= {ADDR_WIDTH{1'b0}}-1;
         end
         else if(r_counter !== COUNTER_STOP) begin
             r_counter <= r_counter + 1;
