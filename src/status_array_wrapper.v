@@ -35,7 +35,7 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
     wire                    sai_ready;
 
     wire sa_ready;
-    assign o_ready = sa_ready | sai_ready;
+    assign o_ready = sa_ready & sai_ready;
 
     status_array_initializer sa_initializer (
         .clk(clk),
