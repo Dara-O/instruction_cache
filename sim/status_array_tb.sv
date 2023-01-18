@@ -1,35 +1,39 @@
 `timescale 1ns/1ps
 
+`include "../src/shared_params.vh"
+
 program main_program #(parameter TAG_WIDTH=1) (
     output	logic	 [TAG_WIDTH-1:0]	i_tag,
-    output	logic	 [3:0]	i_addr,
-    output	logic	 [7:0]	i_data,
-    output	logic	 		i_wen,
-    output	logic	 [3:0]	i_wmask,
-    output	logic	 		i_valid,
+    output	logic	 [ADDR_WIDTH-1:0]	i_r_addr,
+    output	logic	 		i_r_valid,
+    output	logic	 [ADDR_WIDTH-1:0]	i_w_addr,
+    output	logic	 [ROW_WIDTH-1:0]	i_w_data,
+    output	logic	 [NUM_BLOCKS-1:0]	i_w_wmask,
+    output	logic	 		i_w_valid,
     output	logic	 		clk,
     output	logic	 		arst_n,
     output	logic	 		i_halt,
     input	logic	 [TAG_WIDTH-1:0]	o_tag,
-    input	logic	 [7:0]	o_data,
+    input	logic	 [ROW_WIDTH-1:0]	o_data,
     input	logic	 		o_valid,
     input	logic	 		o_ready
 );
 
     // driven
     logic	 [TAG_WIDTH-1:0]	i_tag_d;
-    logic	 [3:0]	i_addr_d;
-    logic	 [7:0]	i_data_d;
-    logic	 		i_wen_d;
-    logic	 [3:0]	i_wmask_d;
-    logic	 		i_valid_d;
+    logic	 [ADDR_WIDTH-1:0]	i_r_addr_d;
+    logic	 		i_r_valid_d;
+    logic	 [ADDR_WIDTH-1:0]	i_w_addr_d;
+    logic	 [ROW_WIDTH-1:0]	i_w_data_d;
+    logic	 [NUM_BLOCKS-1:0]	i_w_wmask_d;
+    logic	 		i_w_valid_d;
     logic	 		arst_n_d;
     logic	 		i_halt_d;
 
     
     // sampled
     logic	 [TAG_WIDTH-1:0]	o_tag_s;
-    logic	 [7:0]	o_data_s;
+    logic	 [ROW_WIDTH-1:0]	o_data_s;
     logic	 		o_valid_s;
     logic	 		o_ready_s;
 
@@ -67,14 +71,12 @@ program main_program #(parameter TAG_WIDTH=1) (
         @(posedge clk);
         for(int i=0; i < 16; ++i) begin
             
-            i_tag_d     <= i;
-            i_addr_d    <= i;
-            i_data_d    <= 'ha+i;
-            i_wen_d     <= 1'h1;
-            i_wmask_d   <= 4'b1111;
-            i_valid_d   <= 1'b1;
+            i_w_addr_d  <= i;
+            i_w_data_d  <= 'ha+i;
+            i_w_valid_d <= 1'h1;
+            i_w_wmask_d <= 4'b1111;
             
-            if(i == 4) begin
+            if(i == 4 || i == 8) begin
                 i_halt_d <= 1'h1; 
             end
             else begin
@@ -84,34 +86,27 @@ program main_program #(parameter TAG_WIDTH=1) (
             @(posedge drive_clk);            
         end
 
-        i_tag_d     <= 'h0;
-        i_addr_d    <= 4'b0;
-        i_data_d    <= 'h0;
-        i_wen_d     <= 1'h0;
-        i_wmask_d   <= 4'b0000;
-        i_valid_d   <= 1'b0;
+        i_w_addr_d    <= 4'b0;
+        i_w_data_d    <= 'h0;
+        i_w_valid_d     <= 1'h0;
+        i_w_wmask_d   <= 4'b0000;
         
         @(posedge drive_clk);
 
         for(int i=0; i < 16; ++i) begin
             
             i_tag_d     <= i;
-            i_addr_d    <= i;
-            i_data_d    <= 'h0;
-            i_wen_d     <= 1'h0;
-            i_valid_d   <= 1'b1;
+            i_r_addr_d    <= i;
+            i_r_valid_d   <= 1'b1;
             
             @(posedge drive_clk);
         end
 
         i_tag_d     <= 1'h0;
-        i_addr_d    <= 4'b0;
-        i_data_d    <= 'h0;
-        i_wen_d     <= 1'h0;
-        i_valid_d   <= 1'b0;
+        i_r_addr_d    <= 4'b0;
+        i_r_valid_d   <= 1'b0;
         
         @(posedge drive_clk);
-
 
         repeat(10) @(posedge drive_clk);
     endtask
@@ -156,11 +151,12 @@ program main_program #(parameter TAG_WIDTH=1) (
     task drive();
     
         i_tag	<=	i_tag_d;
-        i_addr	<=	i_addr_d;
-        i_data	<=	i_data_d;
-        i_wen	<=	i_wen_d;
-        i_wmask	<=	i_wmask_d;
-        i_valid	<=	i_valid_d;
+        i_r_addr	<=	i_r_addr_d;
+        i_r_valid	<=	i_r_valid_d;
+        i_w_addr	<=	i_w_addr_d;
+        i_w_data	<=	i_w_data_d;
+        i_w_wmask	<=	i_w_wmask_d;
+        i_w_valid	<=	i_w_valid_d;
         arst_n	<=	arst_n_d;
         i_halt	<=	i_halt_d;
 
@@ -169,20 +165,22 @@ program main_program #(parameter TAG_WIDTH=1) (
     task init();
 
         i_tag_d	= 0;
-        i_addr_d	= 0;
-        i_data_d	= 0;
-        i_wen_d	= 0;
-        i_wmask_d	= 0;
-        i_valid_d	= 0;
+        i_r_addr_d	= 0;
+        i_r_valid_d	= 0;
+        i_w_addr_d	= 0;
+        i_w_data_d	= 0;
+        i_w_wmask_d	= 0;
+        i_w_valid_d	= 0;
         arst_n_d	= 0;
         i_halt_d	= 0;
 
         i_tag	= 0;
-        i_addr	= 0;
-        i_data	= 0;
-        i_wen	= 0;
-        i_wmask	= 0;
-        i_valid	= 0;
+        i_r_addr	= 0;
+        i_r_valid	= 0;
+        i_w_addr	= 0;
+        i_w_data	= 0;
+        i_w_wmask	= 0;
+        i_w_valid	= 0;
         arst_n	= 0;
         i_halt	= 0;
 
@@ -200,16 +198,17 @@ module tb;
     parameter TAG_WIDTH = 1;
 
     logic 	[TAG_WIDTH-1:0]	i_tag;
-    logic 	[3:0]	i_addr;
-    logic 	[7:0]	i_data;
-    logic 			i_wen;
-    logic 	[3:0]	i_wmask;
-    logic 			i_valid;
+    logic 	[ADDR_WIDTH-1:0]	i_r_addr;
+    logic 			i_r_valid;
+    logic 	[ADDR_WIDTH-1:0]	i_w_addr;
+    logic 	[ROW_WIDTH-1:0]	i_w_data;
+    logic 	[NUM_BLOCKS-1:0]	i_w_wmask;
+    logic 			i_w_valid;
     logic 			clk;
     logic 			arst_n;
     logic 			i_halt;
     logic 	[TAG_WIDTH-1:0]	o_tag;
-    logic 	[7:0]	o_data;
+    logic 	[ROW_WIDTH-1:0]	o_data;
     logic 			o_valid;
     logic 			o_ready;
 
