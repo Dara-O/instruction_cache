@@ -5,7 +5,7 @@
 */
 
 // See file for params...
-`include "shared_params.vh"
+`include "../src/status_array_params.vh"
 
 module status_array_wrapper #(parameter TAG_WIDTH=1) (
     // read port

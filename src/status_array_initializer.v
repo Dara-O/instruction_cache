@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "shared_params.vh"
+`include "../src/status_array_params.vh"
 
 module status_array_initializer(
     input   wire                            clk,
