@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "../src/shared_params.vh"
+`include "../src/status_array_params.vh"
 
 program main_program #(parameter TAG_WIDTH=1) (
     output	logic	 [TAG_WIDTH-1:0]	i_tag,
