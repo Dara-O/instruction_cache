@@ -8,12 +8,16 @@
 `include "shared_params.vh"
 
 module status_array_wrapper #(parameter TAG_WIDTH=1) (
+    // read port
     input   wire    [TAG_WIDTH-1:0]         i_tag,
-    input   wire    [ADDR_WIDTH-1:0]        i_addr,
-    input   wire    [ROW_WIDTH-1:0]         i_data,
-    input   wire                            i_wen, 
-    input   wire    [NUM_BLOCKS-1:0]        i_wmask,
-    input   wire                            i_valid,
+    input   wire    [ADDR_WIDTH-1:0]        i_r_addr,
+    input   wire                            i_r_valid,
+
+    // write port
+    input   wire    [ADDR_WIDTH-1:0]        i_w_addr,
+    input   wire    [ROW_WIDTH-1:0]         i_w_data,
+    input   wire    [NUM_BLOCKS-1:0]        i_w_wmask,
+    input   wire                            i_w_valid,
 
     input   wire                            clk,
     input   wire                            arst_n,
@@ -35,7 +39,7 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
     wire                    sai_ready;
 
     wire sa_ready;
-    assign o_ready = sa_ready | sai_ready;
+    assign o_ready = sa_ready & sai_ready;
 
     status_array_initializer sa_initializer (
         .clk(clk),
@@ -52,49 +56,47 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
     );
 
     reg [TAG_WIDTH-1:0]     r_tag;
-    reg [ADDR_WIDTH-1:0]    r_addr;
-    reg [ROW_WIDTH-1:0]     r_data;
-    reg                     r_wen;
-    reg [NUM_BLOCKS-1:0]    r_wmask;
-    reg                     r_valid;
+    reg [ADDR_WIDTH-1:0]    r_w_addr;
+    reg [ROW_WIDTH-1:0]     r_w_data;
+    reg                     r_w_valid;
+    reg [NUM_BLOCKS-1:0]    r_w_wmask;
     
     // status array signal interception
     always @(*) begin
         case (sai_init_complete)
             1'b0 : begin
-                r_tag           = {TAG_WIDTH{1'b0}};
-                r_addr          = sai_addr;
-                r_data          = sai_data;
-                r_wen           = sai_wen;
-                r_wmask         = sai_wmask;
-                r_valid         = sai_valid;
+                r_tag           = {TAG_WIDTH{1'h0}};
+                r_w_addr        = sai_addr;
+                r_w_data        = sai_data;
+                r_w_valid       = sai_wen & sai_valid;
+                r_w_wmask       = sai_wmask;
             end 
             1'b1 : begin
                 r_tag           = i_tag;
-                r_addr          = i_addr;
-                r_data          = i_data;
-                r_wen           = i_wen;
-                r_wmask         = i_wmask;
-                r_valid         = i_valid;
+                r_w_addr        = i_w_addr;
+                r_w_data        = i_w_data;
+                r_w_valid       = i_w_valid;
+                r_w_wmask       = i_w_wmask;
             end
             default: begin
-                r_tag           = {TAG_WIDTH{1'b0}};
-                r_addr          = sai_addr;
-                r_data          = sai_data;
-                r_wen           = sai_wen;
-                r_wmask         = sai_wmask;
-                r_valid         = sai_valid;
+                r_tag           = {TAG_WIDTH{1'h0}};
+                r_w_addr        = sai_addr;
+                r_w_data        = sai_data;
+                r_w_valid       = sai_wen & sai_valid;
+                r_w_wmask       = sai_wmask;
             end
         endcase
     end
 
     status_array #(.TAG_WIDTH(TAG_WIDTH)) stat_array (
       .i_tag(r_tag),
-      .i_addr(r_addr),
-      .i_data(r_data),
-      .i_wen(r_wen),
-      .i_wmask(r_wmask),
-      .i_valid(r_valid),
+      .i_r_addr(i_r_addr),
+      .i_r_valid(i_r_valid),
+
+      .i_w_addr(r_w_addr),
+      .i_w_data(r_w_data),
+      .i_w_wmask(r_w_wmask),
+      .i_w_valid(r_w_valid),
 
       .clk(clk),
       .arst_n(arst_n),

@@ -67,14 +67,15 @@ program main_program #(parameter TAG_WIDTH=1) (
 
     task test_sequence();
         reset();
-
+        
         @(posedge clk);
         for(int i=0; i < 16; ++i) begin
             
-            i_w_addr_d  <= i;
-            i_w_data_d  <= 'ha+i;
-            i_w_valid_d <= 1'h1;
-            i_w_wmask_d <= 4'b1111;
+            i_tag_d     <= i;
+            i_w_addr_d    <= i;
+            i_w_data_d    <= 'haa ^ {ROW_WIDTH{i[0]}};
+            i_w_wmask_d   <= 4'b0111;
+            i_w_valid_d   <= 1'b1;
             
             if(i == 4 || i == 8) begin
                 i_halt_d <= 1'h1; 
@@ -86,18 +87,19 @@ program main_program #(parameter TAG_WIDTH=1) (
             @(posedge drive_clk);            
         end
 
-        i_w_addr_d    <= 4'b0;
-        i_w_data_d    <= 'h0;
-        i_w_valid_d     <= 1'h0;
-        i_w_wmask_d   <= 4'b0000;
+        i_tag_d         <= 'h0;
+        i_w_addr_d      <= 4'b0;
+        i_w_data_d      <= 'h0;
+        i_w_wmask_d     <= 4'b0000;
+        i_w_valid_d     <= 1'b0;
         
         @(posedge drive_clk);
 
         for(int i=0; i < 16; ++i) begin
             
-            i_tag_d     <= i;
-            i_r_addr_d    <= i;
-            i_r_valid_d   <= 1'b1;
+            i_tag_d         <= i;
+            i_r_addr_d      <= i;
+            i_r_valid_d     <= 1'b1;
             
             @(posedge drive_clk);
         end
@@ -117,6 +119,7 @@ program main_program #(parameter TAG_WIDTH=1) (
 
         arst_n_d = 1;
         repeat(2) @(posedge drive_clk);
+        wait(o_ready_s === 1'b1);
     endtask
 
     task clock_gen(); 
@@ -214,7 +217,7 @@ module tb;
 
 
 
-    status_array #(.TAG_WIDTH(TAG_WIDTH)) dut(.*);
+    status_array_wrapper #(.TAG_WIDTH(TAG_WIDTH)) dut(.*);
     
     main_program #(.TAG_WIDTH(TAG_WIDTH)) main(.*);
     
