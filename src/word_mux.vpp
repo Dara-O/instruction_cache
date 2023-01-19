@@ -1,0 +1,32 @@
+`timescale 1ns/1ps
+
+module word_mux(
+    input   wire    [DATA_BLOCK_WIDTH-1:0]      i_block_data,
+    input   wire    [BLOCK_OFFSET_BITS-1:0]     i_block_offset_bits,
+    
+    output  reg     [WORD_WIDTH-1:0]            o_word_data
+);
+
+    localparam DATA_BLOCK_WIDTH = 320;
+    localparam BLOCK_OFFSET_BITS = 4; 
+    localparam WORD_WIDTH = 20;
+    
+    always @(*) begin
+        case(i_block_offset_bits)
+
+        //@ for my $i (0..15) {
+            //@ my $msb = ($i+1)*20-1;
+            //@ my $lsb = $i*20;
+        20'd$i  :   begin
+            o_word_data = i_block_data[$msb:$lsb];
+        end 
+
+        //@ }
+
+        default : begin
+            o_word_data = {WORD_WIDTH{1'b0}};
+        end
+        endcase
+    end
+
+endmodule
