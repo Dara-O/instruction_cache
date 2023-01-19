@@ -83,7 +83,15 @@ program main_program  (
                 i_status_array_data_d   = 8'h11 << 2*block_idx;
                 i_valid_d               = 1'b1;
                 
+                if(block_offset == 4 || block_offset == 8) begin
+                    i_halt_d <= 1'h1; 
+                end
+                else begin
+                    i_halt_d <= 1'h0;
+                end
+
                 @(posedge drive_clk);
+
             end
         end
 
