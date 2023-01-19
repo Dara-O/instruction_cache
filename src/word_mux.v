@@ -3,7 +3,8 @@
     See link for more:
     https://www.beyond-circuits.com/wordpress/vpp-pl-man-page/
    
-   Invoked by: Isaac Ogunmola
+   Template file: word_mux.vpp
+    Invoked by: Isaac Ogunmola
 */
 `timescale 1ns/1ps
 
