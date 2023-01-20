@@ -1,43 +1,51 @@
 `timescale 1ns/1ps
 
-localparam TAG_BITS_WIDTH = 8;
-localparam BLOCK_OFFSET_BITS = 4; 
-localparam TAG_ARRAY_WIDTH = 32;
-localparam DATA_ARRAY_WIDTH = 1280;
-localparam STATUS_ARRAY_WIDTH = 8;
-localparam WORD_DATA_WIDTH = 20; 
+    localparam TAG_BITS_WIDTH = 8;
+    localparam BLOCK_OFFSET_BITS = 4; 
+    localparam TAG_ARRAY_WIDTH = 32;
+    localparam STATUS_ARRAY_WIDTH = 8;
+    localparam SET_BITS_WIDTH = 4;
+
+    localparam NUM_BLOCKS = 4;
 
 program main_program  (
-    output	logic	 [TAG_BITS_WIDTH-1:0]	    i_tag_bits,
-    output	logic	 [BLOCK_OFFSET_BITS-1:0]	i_block_offset_bits,
-    output	logic	 [TAG_ARRAY_WIDTH-1:0]	    i_tag_array_tag_data,
-    output	logic	 [DATA_ARRAY_WIDTH-1:0]	    i_data_array_data,
+    output	logic	 [TAG_BITS_WIDTH-1:0]	i_tag_bits,
+    output	logic	 [TAG_ARRAY_WIDTH-1:0]	i_tag_array_tag_data,
     output	logic	 [STATUS_ARRAY_WIDTH-1:0]	i_status_array_data,
-    output	logic	 		                    i_valid,
-    output	logic	 		                    clk,
-    output	logic	 		                    arst_n,
-    output	logic	 		                    i_halt,
-
-    input	logic	 [WORD_DATA_WIDTH-1:0]	    o_word_data,
-    input	logic	 		                    o_cache_hit,
-    input	logic	 		                    o_valid,
-    input	logic	 		                    o_ready
+    output	logic	 [SET_BITS_WIDTH-1:0]	i_set_bits,
+    output	logic	 [BLOCK_OFFSET_BITS-1:0]	i_block_offset_bits,
+    output	logic	 		i_valid,
+    output	logic	 		clk,
+    output	logic	 		arst_n,
+    output	logic	 		i_halt,
+    input	logic	 [NUM_BLOCKS-1:0]	o_hit_blocks,
+    input	logic	 		o_cache_hit,
+    input	logic	 [TAG_BITS_WIDTH-1:0]	o_tag_bits,
+    input	logic	 [SET_BITS_WIDTH-1:0]	o_set_bits,
+    input	logic	 [BLOCK_OFFSET_BITS-1:0]	o_block_offset_bits,
+    input	logic	 [STATUS_ARRAY_WIDTH-1:0]	o_status_array_data,
+    input	logic	 		o_valid,
+    input	logic	 		o_ready
 );
 
     // driven
     logic	 [TAG_BITS_WIDTH-1:0]	i_tag_bits_d;
-    logic	 [BLOCK_OFFSET_BITS-1:0]	i_block_offset_bits_d;
     logic	 [TAG_ARRAY_WIDTH-1:0]	i_tag_array_tag_data_d;
-    logic	 [DATA_ARRAY_WIDTH-1:0]	i_data_array_data_d;
     logic	 [STATUS_ARRAY_WIDTH-1:0]	i_status_array_data_d;
+    logic	 [SET_BITS_WIDTH-1:0]	i_set_bits_d;
+    logic	 [BLOCK_OFFSET_BITS-1:0]	i_block_offset_bits_d;
     logic	 		i_valid_d;
     logic	 		arst_n_d;
     logic	 		i_halt_d;
 
     
     // sampled
-    logic	 [WORD_DATA_WIDTH-1:0]	o_word_data_s;
+    logic	 [NUM_BLOCKS-1:0]	o_hit_blocks_s;
     logic	 		o_cache_hit_s;
+    logic	 [TAG_BITS_WIDTH-1:0]	o_tag_bits_s;
+    logic	 [SET_BITS_WIDTH-1:0]	o_set_bits_s;
+    logic	 [BLOCK_OFFSET_BITS-1:0]	o_block_offset_bits_s;
+    logic	 [STATUS_ARRAY_WIDTH-1:0]	o_status_array_data_s;
     logic	 		o_valid_s;
     logic	 		o_ready_s;
 
@@ -71,37 +79,24 @@ program main_program  (
 
     task test_sequence();
         reset();
-        
-        for(int block_idx = 0; block_idx < 4; ++block_idx) begin
-            for(int block_offset = 0; block_offset < 16; ++block_offset) begin
-                
-                i_tag_bits_d            = 8'haa;
-                i_block_offset_bits_d   = block_offset;
-                
-                i_tag_array_tag_data_d  = 32'haa  << TAG_BITS_WIDTH*block_idx;
-                i_data_array_data_d     = 1280'hfdeed+block_idx+block_offset << 320*block_idx + 20*i_block_offset_bits_d;
-                i_status_array_data_d   = 8'h11 << 2*block_idx;
-                i_valid_d               = 1'b1;
-                
-                if(block_offset == 4 || block_offset == 8) begin
-                    i_halt_d <= 1'h1; 
-                end
-                else begin
-                    i_halt_d <= 1'h0;
-                end
+        for(int target_block = 0; target_block < 4; ++target_block) begin
+            i_tag_bits_d <= 8'haa;
+            i_tag_array_tag_data_d <= 32'haa << TAG_BITS_WIDTH * target_block;
+            i_status_array_data_d <= 8'b11 << 2 * target_block;
 
-                @(posedge drive_clk);
+            i_set_bits_d <= 4'hb;
+            i_block_offset_bits_d <= 4'h1;
+            i_valid_d <= 1'b1;
 
+            if(target_block == 1) begin
+                i_halt_d = 1'b1;
             end
-        end
+            else begin
+                i_halt_d = 1'b0;
+            end
 
-        i_tag_bits_d            = 8'h0;
-        i_block_offset_bits_d   = 4'h0;
-        
-        i_tag_array_tag_data_d  = 32'h0;
-        i_data_array_data_d     = 1280'h0;
-        i_status_array_data_d   = 8'h0;
-        i_valid_d               = 1'b0;
+            @(posedge drive_clk);
+        end
 
 
         repeat(10) @(posedge drive_clk);
@@ -137,8 +132,12 @@ program main_program  (
 
     task sample();
     
-        o_word_data_s	<=	o_word_data;
+        o_hit_blocks_s	<=	o_hit_blocks;
         o_cache_hit_s	<=	o_cache_hit;
+        o_tag_bits_s	<=	o_tag_bits;
+        o_set_bits_s	<=	o_set_bits;
+        o_block_offset_bits_s	<=	o_block_offset_bits;
+        o_status_array_data_s	<=	o_status_array_data;
         o_valid_s	<=	o_valid;
         o_ready_s	<=	o_ready;
 
@@ -147,10 +146,10 @@ program main_program  (
     task drive();
     
         i_tag_bits	<=	i_tag_bits_d;
-        i_block_offset_bits	<=	i_block_offset_bits_d;
         i_tag_array_tag_data	<=	i_tag_array_tag_data_d;
-        i_data_array_data	<=	i_data_array_data_d;
         i_status_array_data	<=	i_status_array_data_d;
+        i_set_bits	<=	i_set_bits_d;
+        i_block_offset_bits	<=	i_block_offset_bits_d;
         i_valid	<=	i_valid_d;
         arst_n	<=	arst_n_d;
         i_halt	<=	i_halt_d;
@@ -160,19 +159,19 @@ program main_program  (
     task init();
 
         i_tag_bits_d	= 0;
-        i_block_offset_bits_d	= 0;
         i_tag_array_tag_data_d	= 0;
-        i_data_array_data_d	= 0;
         i_status_array_data_d	= 0;
+        i_set_bits_d	= 0;
+        i_block_offset_bits_d	= 0;
         i_valid_d	= 0;
         arst_n_d	= 0;
         i_halt_d	= 0;
 
         i_tag_bits	= 0;
-        i_block_offset_bits	= 0;
         i_tag_array_tag_data	= 0;
-        i_data_array_data	= 0;
         i_status_array_data	= 0;
+        i_set_bits	= 0;
+        i_block_offset_bits	= 0;
         i_valid	= 0;
         arst_n	= 0;
         i_halt	= 0;
@@ -190,16 +189,20 @@ module tb;
     
 
     logic 	[TAG_BITS_WIDTH-1:0]	i_tag_bits;
-    logic 	[BLOCK_OFFSET_BITS-1:0]	i_block_offset_bits;
     logic 	[TAG_ARRAY_WIDTH-1:0]	i_tag_array_tag_data;
-    logic 	[DATA_ARRAY_WIDTH-1:0]	i_data_array_data;
     logic 	[STATUS_ARRAY_WIDTH-1:0]	i_status_array_data;
+    logic 	[SET_BITS_WIDTH-1:0]	i_set_bits;
+    logic 	[BLOCK_OFFSET_BITS-1:0]	i_block_offset_bits;
     logic 			i_valid;
     logic 			clk;
     logic 			arst_n;
     logic 			i_halt;
-    logic 	[WORD_DATA_WIDTH-1:0]	o_word_data;
+    logic 	[NUM_BLOCKS-1:0]	o_hit_blocks;
     logic 			o_cache_hit;
+    logic 	[TAG_BITS_WIDTH-1:0]	o_tag_bits;
+    logic 	[SET_BITS_WIDTH-1:0]	o_set_bits;
+    logic 	[BLOCK_OFFSET_BITS-1:0]	o_block_offset_bits;
+    logic 	[STATUS_ARRAY_WIDTH-1:0]	o_status_array_data;
     logic 			o_valid;
     logic 			o_ready;
 
