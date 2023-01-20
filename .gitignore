@@ -13,3 +13,4 @@ import/sram_macro_files/*.lib
 import/sky130_sram_0kbytes_1r1w_16x8_2.v
 import/sky130_sram_0kbytes_1r1w_16x32_8.v
 import/sky130_sram_1kbytes_1r1w_16x320_320.v
+*.$*
