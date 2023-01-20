@@ -1,8 +1,8 @@
 // OpenRAM SRAM model
-// Words: 16
-// Word size: 320
+// Words: 256
+// Word size: 20
 
-module sky130_sram_1kbytes_1r1w_16x320_320(
+module sky130_sram_1kbytes_1r1w_256x20_20(
 `ifdef USE_POWER_PINS
     vccd1,
     vssd1,
@@ -13,8 +13,8 @@ module sky130_sram_1kbytes_1r1w_16x320_320(
     clk1,csb1,addr1,dout1
   );
 
-  parameter DATA_WIDTH = 320 ;
-  parameter ADDR_WIDTH = 4 ;
+  parameter DATA_WIDTH = 20 ;
+  parameter ADDR_WIDTH = 8 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
   // FIXME: This delay is arbitrary.
   parameter DELAY = 3 ;
@@ -61,7 +61,7 @@ module sky130_sram_1kbytes_1r1w_16x320_320(
     addr1_reg = addr1;
     if (!csb0 && !csb1 && (addr0 == addr1))
          $display($time," WARNING: Writing and reading addr0=%b and addr1=%b simultaneously!",addr0,addr1);
-    #(T_HOLD) dout1 = 320'bx;
+    #(T_HOLD) dout1 = 20'bx;
     if ( !csb1_reg && VERBOSE ) 
       $display($time," Reading %m addr1=%b dout1=%b",addr1_reg,mem[addr1_reg]);
   end
@@ -72,7 +72,7 @@ module sky130_sram_1kbytes_1r1w_16x320_320(
   always @ (negedge clk0)
   begin : MEM_WRITE0
     if (!csb0_reg) begin
-        mem[addr0_reg][319:0] = din0_reg[319:0];
+        mem[addr0_reg][19:0] = din0_reg[19:0];
     end
   end
 
