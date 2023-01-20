@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module cache_mux (
+module tag_checker (
     input   wire    [TAG_BITS_WIDTH-1:0]        i_tag_bits,
     
     input   wire    [TAG_ARRAY_WIDTH-1:0]       i_tag_array_tag_data,

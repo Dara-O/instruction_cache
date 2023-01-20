@@ -208,7 +208,7 @@ module tb;
 
 
 
-    cache_mux  dut(.*);
+    tag_checker  dut(.*);
     
     main_program  main(.*);
     
