@@ -17,7 +17,8 @@ program main_program  (
     input	logic	 		o_send_missed_word,
     input	logic	 		o_valid,
     input	logic	 		o_mem_if_ready,
-    input	logic	 		o_user_if_ready
+    input	logic	 		o_arrays_udpater_ready,
+    input	logic	 		o_ready
 );
 
     // driven
@@ -39,7 +40,8 @@ program main_program  (
     logic	 		o_send_missed_word_s;
     logic	 		o_valid_s;
     logic	 		o_mem_if_ready_s;
-    logic	 		o_user_if_ready_s;
+    logic	 		o_arrays_udpater_ready_s;
+    logic	 		o_ready_s;
 
 
     localparam CLK_PERIOD = 50;
@@ -131,8 +133,6 @@ program main_program  (
         repeat(2) @(posedge drive_clk);
     endtask
 
-    
-
     task clock_gen(); 
         forever begin
             dut_clk <= 0;
@@ -162,7 +162,8 @@ program main_program  (
         o_send_missed_word_s	<=	o_send_missed_word;
         o_valid_s	<=	o_valid;
         o_mem_if_ready_s	<=	o_mem_if_ready;
-        o_user_if_ready_s	<=	o_user_if_ready;
+        o_arrays_udpater_ready_s	<=	o_arrays_udpater_ready;
+        o_ready_s	<=	o_ready;
 
     endtask
 
@@ -184,18 +185,18 @@ program main_program  (
         i_cache_hit_d	= 0;
         i_valid_d	= 0;
         i_mem_data_received_d	= 0;
-        i_mem_if_valid_d	= 1;
+        i_mem_if_valid_d	= 0;
         i_arrays_update_complete_d	= 0;
-        i_auc_valid_d	= 1;
+        i_auc_valid_d	= 0;
         arst_n_d	= 0;
         i_halt_d	= 0;
 
         i_cache_hit	= 0;
         i_valid	= 0;
         i_mem_data_received	= 0;
-        i_mem_if_valid	= 1;
+        i_mem_if_valid	= 0;
         i_arrays_update_complete	= 0;
-        i_auc_valid	= 1;
+        i_auc_valid	= 0;
         arst_n	= 0;
         i_halt	= 0;
 
@@ -227,7 +228,8 @@ module tb;
     logic 			o_send_missed_word;
     logic 			o_valid;
     logic 			o_mem_if_ready;
-    logic 			o_user_if_ready;
+    logic 			o_arrays_udpater_ready;
+    logic 			o_ready;
 
 
 
