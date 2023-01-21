@@ -24,7 +24,8 @@ module control_unit (
     output  wire    o_valid,
     
     output  wire    o_mem_if_ready,
-    output  wire    o_user_if_ready
+    output  wire    o_arrays_udpater_ready,
+    output  wire    o_ready
 );
 
     localparam STATE_IDLE               = 0;
@@ -36,7 +37,8 @@ module control_unit (
     reg     [$clog2(NUM_STATES)-1:0]    w_state;
     
 
-    assign o_user_if_ready = ~(i_halt | o_miss_state); //FIXME
+    assign o_ready = ~(i_halt | o_miss_state);
+    assign o_arrays_udpater_ready = ~i_halt;
     
     always @(posedge clk, negedge arst_n) begin
         if(~arst_n) begin
