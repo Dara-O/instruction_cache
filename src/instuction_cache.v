@@ -1,34 +1,37 @@
 `timescale 1ns/1ps
 
 module instruction_cache(
-    input   wire    [ADDR_WIDTH-1:0]    i_addr,
-    input   wire                        i_valid, 
+    input   wire    [ADDR_WIDTH-1:0]            i_addr,
+    input   wire                                i_valid, 
 
-    input   wire                        clk,
-    input   wire                        arst_n,
-    input   wire                        i_halt,
+    input   wire                                clk,
+    input   wire                                arst_n,
+    input   wire                                i_halt,
 
-    input   wire    [MEM_IF_WIDTH-1:0]  i_mem_data,
-    input   wire                        i_mem_data_valid,
+    input   wire    [MEM_IF_DATA_WIDTH-1:0]     i_mem_data,
+    input   wire                                i_mem_data_valid,
 
-    output  wire    [WORD_WIDTH-1:0]    o_data,
-    output  wire                        o_valid,
+    output  wire    [WORD_WIDTH-1:0]            o_data,
+    output  wire                                o_valid,
 
     // memory interface
-    output  wire    [MEM_IF_WIDTH-1:0]  o_mem_addr,
-    output  wire                        o_mem_req_valid,
-    output  wire                        o_ready
+    output  wire    [MEM_IF_ADDR_WIDTH-1:0]     o_mem_addr,
+    output  wire                                o_mem_req_valid,
+    output  wire                                o_ready
 );
-
+    
     localparam ADDR_WIDTH = 16;
     localparam WORD_WIDTH = 20;
-    localparam MEM_IF_WIDTH = 128;
+    localparam MEM_IF_DATA_WIDTH = 128;
+    localparam MEM_IF_ADDR_WIDTH = 16;
 
     localparam SET_BITS_WIDTH = 4;
     localparam BLOCK_OFFSET_BITS_WIDTH = 4;
     localparam TAG_BITS_WIDTH = 8;
     localparam STATUS_ARRAY_WORD_WIDTH = 4*2;
     localparam NUM_BLOCKS = 4; // aka number of ways
+
+    // FIXME: Instantiate reset synchronizer that asserts o_ready when reset is complete
 
     // ============ STAGE 1 BEGINS ============
 
