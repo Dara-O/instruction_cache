@@ -5,4 +5,8 @@
     localparam NUM_BLOCKS = 4;
     localparam BLOCK_WIDTH = 2;
     localparam ROW_WIDTH = 4*2; // NUM_BLOCKS*BLOCK_WIDTH
+
+    // for use in understanding status_array_data
+    localparam USE_BIT_IDX      = 0; 
+    localparam VALID_BIT_IDX    = 1;
 `endif
