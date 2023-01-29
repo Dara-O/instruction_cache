@@ -24,7 +24,7 @@ module control_unit (
     output  wire    o_valid,
     
     output  wire    o_mem_if_ready,
-    output  wire    o_arrays_udpater_ready,
+    output  wire    o_arrays_updater_ready,
     output  wire    o_ready
 );
 
@@ -38,7 +38,7 @@ module control_unit (
     
 
     assign o_ready = ~(i_halt | o_miss_state);
-    assign o_arrays_udpater_ready = ~i_halt;
+    assign o_arrays_updater_ready = ~i_halt;
     
     always @(posedge clk, negedge arst_n) begin
         if(~arst_n) begin
