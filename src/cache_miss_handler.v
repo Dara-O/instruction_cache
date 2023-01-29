@@ -167,10 +167,21 @@ module cache_miss_handler (
 
     arrays_updater arrays_updater_m(
         .i_initiate_arrays_update(),
-        .i_valid(),
-        
-        .i_da_data(),
-        .i_da_data_valid(),
+        .i_iau_valid(),
+
+        .i_set_addr(),
+        .i_set_addr_valid(),
+
+        .i_tag_bits(),
+        .i_tag_bits_valid(),
+
+        .i_block_replacement_mask(),
+        .i_brm_valid(),
+
+        .i_mem_data(),
+        .i_mem_data_valid(),
+
+        .i_miss_state(),
     
         .clk(clk),
         .arst_n(arst_n),
@@ -198,8 +209,6 @@ module cache_miss_handler (
 
         .o_arrays_update_complete(),
         .o_auc_valid(), // arrays_update_complete_valid
-        
-        .o_da_data_ready(), // tells mem ctrl to stop/continue sending data
 
         .o_ready()
     );
