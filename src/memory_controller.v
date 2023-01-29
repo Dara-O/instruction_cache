@@ -20,7 +20,7 @@ module memory_controller(
 
     output  wire                                o_mem_data_received, // to control unit 
     output  wire                                o_mem_data_rcvd_valid,
-    output  wire                                o_ir_ready, // to control unit 
+    output  wire                                o_ir_ready, // to control unit; ir == initiate request 
 
     output  reg     [MEM_BLOCK_DATA_WIDTH-1:0]  o_mem_block_data, // to data dispatcher (array updater and user readout)
     output  wire                                o_mem_block_data_valid
