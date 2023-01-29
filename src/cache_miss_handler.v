@@ -1,7 +1,8 @@
 `timescale 1ns/1ps
 
 /*
-
+    TODO:
+        - test the module
 */
 
 module cache_miss_handler (
@@ -127,7 +128,7 @@ module cache_miss_handler (
     
     wire mc_cu_mem_data_received;
     wire mc_cu_mem_if_valid;
-    wire mc_cu_mem_ready;
+    // wire mc_cu_mem_ready; // meant to tell cntrl_unit if memory_controller is ready to recieve input
     
     wire au_cu_arrays_update_complete;
     wire au_cu_auc_valid;
@@ -138,11 +139,12 @@ module cache_miss_handler (
     wire cu_initiate_array_update; 
     wire cu_send_missed_word;
     wire cu_valid; 
-    wire cu_mem_if_ready; // connect me
-    wire cu_arrays_updater_ready; // connect me
     wire cu_ready;
+    // wire cu_mem_if_ready; // connect me
+    // wire cu_arrays_updater_ready; // connect me
 
     assign o_miss_state = cu_miss_state;
+    assign o_ready = ~(i_halt & o_miss_state);
 
     control_unit ctrl_unit(
         .i_cache_hit(r_cache_hit),
@@ -156,7 +158,7 @@ module cache_miss_handler (
         
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(), //FIXME all the modules should be able to halt it (only when they need to be accessed but arent ready)
+        .i_halt(i_halt), //FIXME all the modules should be able to halt it (only when they need to be accessed but arent ready)
         
         .o_miss_state(cu_miss_state),
         
@@ -167,8 +169,8 @@ module cache_miss_handler (
         .o_send_missed_word(cu_send_missed_word),
         .o_valid(cu_valid),
 
-        .o_mem_if_ready(cu_mem_if_ready), //FIXME
-        .o_arrays_updater_ready(cu_arrays_updater_ready),
+        .o_mem_if_ready(),
+        .o_arrays_updater_ready(),
         .o_ready(cu_ready)
     );
 
@@ -188,7 +190,7 @@ module cache_miss_handler (
     
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(), //FIXME
+        .i_halt(i_halt),
 
         // to memory
         .o_mem_req_addr(o_mem_if_addr), 
@@ -197,13 +199,13 @@ module cache_miss_handler (
         
         .o_mem_data_received(mc_cu_mem_data_received),
         .o_mem_data_rcvd_valid(mc_cu_mem_if_valid),
-        .o_ir_ready(mc_cu_mem_ready),
+        .o_ir_ready(), //mc_cu_mem_ready
 
         .o_mem_block_data(mc_mem_block_data), 
         .o_mem_block_data_valid(mc_mem_block_data_valid)
     );
 
-    wire au_ready;
+    // wire au_ready;
     arrays_updater arrays_updater_m(
         .i_initiate_arrays_update(cu_initiate_array_update),
         .i_iau_valid(cu_valid),
@@ -224,7 +226,7 @@ module cache_miss_handler (
     
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(), //FIXME
+        .i_halt(i_halt), //FIXME
 
         .i_ta_blocks_halt(i_ta_blocks_halt),
         .i_sa_blocks_halt(i_sa_blocks_halt),
@@ -249,7 +251,7 @@ module cache_miss_handler (
         .o_arrays_update_complete(au_cu_arrays_update_complete),
         .o_auc_valid(au_cu_auc_valid), // arrays_update_complete_valid
 
-        .o_ready(au_ready)
+        .o_ready()
     );
 
     miss_word_driver miss_word_driver_m(
