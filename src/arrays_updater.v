@@ -223,7 +223,7 @@ module arrays_updater (
     end
 
     wire [TA_DATA_WIDTH-1:0]    w_ta_data = {24'b0, i_tag_bits & {TAG_BITS_WIDTH{i_tag_bits_valid}}};
-    wire [SA_DATA_WIDTH]        w_sa_data = {6'b0,
+    wire [SA_DATA_WIDTH-1:0]    w_sa_data = {6'b0,
                                             1'b1, // valid bit
                                             1'b1 // use bit
                                         };
