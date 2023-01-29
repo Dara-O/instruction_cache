@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module miss_word_driver (
+module missed_word_driver (
     input   wire    [MEM_DATA_WIDTH-1:0]    i_mem_data,
     input   wire    [NUM_WORDS-1:0]         i_block_offset_bits,
     input   wire                            i_valid,
