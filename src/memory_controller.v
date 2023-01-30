@@ -26,7 +26,7 @@ module memory_controller(
     output  wire                                o_mem_block_data_valid
    
 );
-    localparam ADDR_WIDTH           = 8;
+    localparam ADDR_WIDTH           = 16;
     localparam MEM_DATA_WIDTH       = 32;
     localparam MEM_BLOCK_DATA_WIDTH = 320;
     
