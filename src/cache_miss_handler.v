@@ -73,7 +73,6 @@ module cache_miss_handler (
     localparam MEM_BLOCK_DATA_WIDTH = 320;
 
     
-    assign o_ready = ~i_halt | ~o_miss_state; //FIXME
 
     reg                             r_cache_hit;
     reg [TAG_BITS_WIDTH-1:0]        r_tag_bits;
@@ -178,7 +177,7 @@ module cache_miss_handler (
     wire mc_mem_block_data_valid;
 
     memory_controller mem_ctrl(
-        .i_block_addr({r_tag_bits. r_set_bits}),
+        .i_block_addr({r_tag_bits, r_set_bits, r_block_offset_bits}),
         .i_block_addr_valid(r_valid),
     
         .i_initiate_req(cu_mc_initiate_mem_req),
@@ -254,7 +253,7 @@ module cache_miss_handler (
         .o_ready()
     );
 
-    miss_word_driver miss_word_driver_m(
+    missed_word_driver missed_word_driver_m(
         .i_mem_data(mc_mem_block_data),
         .i_block_offset_bits(r_block_offset_bits),
         .i_valid(cu_send_missed_word & cu_valid & r_valid & mc_mem_block_data_valid),
