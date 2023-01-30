@@ -2,7 +2,7 @@
 
 module missed_word_driver (
     input   wire    [MEM_DATA_WIDTH-1:0]    i_mem_data,
-    input   wire    [NUM_WORDS-1:0]         i_block_offset_bits,
+    input   wire    [B_OFFSET_BITS-1:0]     i_block_offset_bits,
     input   wire                            i_valid,
 
     output  reg     [WORD_WIDTH-1:0]        o_missed_word,
@@ -10,7 +10,7 @@ module missed_word_driver (
 );
     localparam MEM_DATA_WIDTH = 320;
     localparam WORD_WIDTH = 20;
-    localparam NUM_WORDS = 16;
+    localparam B_OFFSET_BITS = 4;
 
     assign o_valid = i_valid; 
 
