@@ -27,10 +27,10 @@ module memory_controller(
    
 );
     localparam ADDR_WIDTH           = 16;
-    localparam MEM_DATA_WIDTH       = 32;
+    localparam MEM_DATA_WIDTH       = 40;
     localparam MEM_BLOCK_DATA_WIDTH = 320;
     
-    localparam  NUM_MEM_TRANSACTIONS = 10; // NUM_MEM_TRANSACTIONS*MEM_DATA_WIDTH = MEM_BLOCK_DATA_WIDTH
+    localparam  NUM_MEM_TRANSACTIONS = 8; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*MEM_DATA_WIDTH
 
     assign o_ir_ready = ~i_halt;
 
@@ -39,19 +39,20 @@ module memory_controller(
     localparam STATE_MEM_RECEIVING  = 2;
     localparam NUM_STATES = 3;
 
-    reg r_initiate_req;
-    reg r_ir_valid;
+    // uncomment if post-sta period is too small
+    // reg r_initiate_req;
+    // reg r_ir_valid;
 
-    always @(posedge clk, negedge arst_n) begin
-        if(~arst_n) begin
-            r_initiate_req <= 1'b0;
-            r_ir_valid <= 1'b0;
-        end
-        else if(~i_halt) begin
-            r_initiate_req  <= i_initiate_req;
-            r_ir_valid      <= i_ir_valid;
-        end
-    end
+    // always @(posedge clk, negedge arst_n) begin
+    //     if(~arst_n) begin
+    //         r_initiate_req <= 1'b0;
+    //         r_ir_valid <= 1'b0;
+    //     end
+    //     else if(~i_halt) begin
+    //         r_initiate_req  <= i_initiate_req;
+    //         r_ir_valid      <= i_ir_valid;
+    //     end
+    // end
 
     reg [$clog2(NUM_STATES)-1:0]    r_state;
     reg [$clog2(NUM_STATES)-1:0]    w_state; 
@@ -74,7 +75,7 @@ module memory_controller(
     always @(*) begin
         case(r_state)
         STATE_IDLE : begin
-            w_state = (r_initiate_req & r_ir_valid) ? STATE_MEM_REQUESTED : STATE_IDLE;
+            w_state = (i_initiate_req & i_ir_valid) ? STATE_MEM_REQUESTED : STATE_IDLE;
         end
         STATE_MEM_REQUESTED :  begin
             w_state = (i_mem_data_valid) ? STATE_MEM_RECEIVING : STATE_MEM_REQUESTED;
@@ -111,34 +112,28 @@ module memory_controller(
                 (~w_all_words_received | (w_state === STATE_MEM_RECEIVING))) begin
             case(r_transactions_counter) // elaborated to avoid synthesizing mula multiplier
             4'd0: begin
-                o_mem_block_data[31:0] <= i_mem_data;
+                o_mem_block_data[39:0] <= i_mem_data;
             end
             4'd1: begin
-                o_mem_block_data[63:32] <= i_mem_data;
+                o_mem_block_data[79:40] <= i_mem_data;
             end
             4'd2: begin
-                o_mem_block_data[95:64] <= i_mem_data;
+                o_mem_block_data[119:80] <= i_mem_data;
             end
             4'd3: begin
-                o_mem_block_data[127:96] <= i_mem_data;
+                o_mem_block_data[159:120] <= i_mem_data;
             end
             4'd4: begin
-                o_mem_block_data[159:128] <= i_mem_data;
+                o_mem_block_data[199:160] <= i_mem_data;
             end
             4'd5: begin
-                o_mem_block_data[191:160] <= i_mem_data;
+                o_mem_block_data[239:200] <= i_mem_data;
             end
             4'd6: begin
-                o_mem_block_data[223:192] <= i_mem_data;
+                o_mem_block_data[279:240] <= i_mem_data;
             end
             4'd7: begin
-                o_mem_block_data[255:224] <= i_mem_data;
-            end
-            4'd8: begin
-                o_mem_block_data[287:256] <= i_mem_data;
-            end
-            4'd9: begin
-                o_mem_block_data[319:288] <= i_mem_data;
+                o_mem_block_data[319:280] <= i_mem_data;
             end
             endcase
         end
