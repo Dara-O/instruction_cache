@@ -1,35 +1,42 @@
 `timescale 1ns/1ps
 
-localparam ADDR_WIDTH   = 8;
-localparam WORD_WIDTH   = 20;
-localparam NUM_BLOCKS   = 4;
+    localparam SET_BITS_WIDTH  = 4;    
+    localparam B_OFFSET_BITS_WIDTH = 4;
+    
+    localparam READ_WORD_WIDTH  = 20;
+    localparam WRITE_WORD_WIDTH = 20*4;// 4 == number of srams
+    localparam NUM_WAYS         = 4;
 
 program main_program  (
-    output	logic	 [ADDR_WIDTH-1:0]	i_r_addr,
+    output	logic	 [SET_BITS_WIDTH-1:0]	i_r_set_bits,
+    output	logic	 [$clog2(NUM_WAYS)-1:0]	i_r_way_index,
+    output	logic	 [B_OFFSET_BITS_WIDTH-1:0]	i_r_block_offset_bits,
     output	logic	 		i_r_valid,
-    output	logic	 [NUM_BLOCKS-1:0]	i_r_mask,
-    output	logic	 [ADDR_WIDTH-1:0]	i_w_addr,
-    output	logic	 [WORD_WIDTH-1:0]	i_w_data,
+    output	logic	 [SET_BITS_WIDTH-1:0]	i_w_set_bits,
+    output	logic	 [$clog2(NUM_WAYS)-1:0]	i_w_way_index,
+    output	logic	 [B_OFFSET_BITS_WIDTH-3:0]	i_w_block_offset_bits,
+    output	logic	 [WRITE_WORD_WIDTH-1:0]	i_w_data,
     output	logic	 		i_w_valid,
-    output	logic	 [NUM_BLOCKS-1:0]	i_w_mask,
     output	logic	 		clk,
     output	logic	 		arst_n,
     output	logic	 		i_halt_all,
     output	logic	 		i_stop_read_clk,
     output	logic	 		i_stop_write_clk,
-    input	logic	 [WORD_WIDTH-1:0]	o_word_data,
+    input	logic	 [READ_WORD_WIDTH-1:0]	o_word_data,
     input	logic	 		o_valid,
     input	logic	 		o_ready
 );
 
     // driven
-    logic	 [ADDR_WIDTH-1:0]	i_r_addr_d;
+    logic	 [SET_BITS_WIDTH-1:0]	i_r_set_bits_d;
+    logic	 [$clog2(NUM_WAYS)-1:0]	i_r_way_index_d;
+    logic	 [B_OFFSET_BITS_WIDTH-1:0]	i_r_block_offset_bits_d;
     logic	 		i_r_valid_d;
-    logic	 [NUM_BLOCKS-1:0]	i_r_mask_d;
-    logic	 [ADDR_WIDTH-1:0]	i_w_addr_d;
-    logic	 [WORD_WIDTH-1:0]	i_w_data_d;
+    logic	 [SET_BITS_WIDTH-1:0]	i_w_set_bits_d;
+    logic	 [$clog2(NUM_WAYS)-1:0]	i_w_way_index_d;
+    logic	 [B_OFFSET_BITS_WIDTH-3:0]	i_w_block_offset_bits_d;
+    logic	 [WRITE_WORD_WIDTH-1:0]	i_w_data_d;
     logic	 		i_w_valid_d;
-    logic	 [NUM_BLOCKS-1:0]	i_w_mask_d;
     logic	 		arst_n_d;
     logic	 		i_halt_all_d;
     logic	 		i_stop_read_clk_d;
@@ -37,7 +44,7 @@ program main_program  (
 
     
     // sampled
-    logic	 [WORD_WIDTH-1:0]	o_word_data_s;
+    logic	 [READ_WORD_WIDTH-1:0]	o_word_data_s;
     logic	 		o_valid_s;
     logic	 		o_ready_s;
 
@@ -70,47 +77,40 @@ program main_program  (
     end
 
     task test_sequence();
-        logic [3:0] mask;
+        logic [79:0] data;
         reset();
         
-        mask = 4'b0001;
+        data = {2{40'haaaaa_55555}};
 
-        for(int i = 0; i < 4; ++i) begin
-            mask = 4'b0001 << i;
-            for (int addr = 0; addr < 256; ++addr) begin
-                i_w_addr_d = addr;
-                i_w_data_d = 20'h2aa + i;
-                i_w_valid_d = 1'b1;
-                i_w_mask_d = mask;
-
-                @(posedge drive_clk);
-            end
+        for(int i=0; i<256; ++i) begin
+            i_w_set_bits_d          = i[7:4];
+            i_w_way_index_d         = i[3:2];
+            i_w_block_offset_bits_d = i[1:0];
+            i_w_data_d              = data;
+            i_w_valid_d             = 1'b1;
+            @(posedge drive_clk);
         end
 
-        i_w_addr_d = 0;
-        i_w_data_d = 0;
-        i_w_valid_d = 0;
-        i_w_mask_d = 0;
+        i_w_set_bits_d          = 0;
+        i_w_way_index_d         = 0;
+        i_w_block_offset_bits_d = 0;
+        i_w_data_d              = 0;
+        i_w_valid_d             = 1'b0;
+        repeat(2) @(posedge drive_clk);
+
+        for(int i=0; i<1024; ++i) begin
+            i_r_set_bits_d          = i[9:6];
+            i_r_way_index_d         = i[5:4];
+            i_r_block_offset_bits_d = i[3:0];
+            i_r_valid_d             = 1'b1;
+            @(posedge drive_clk);
+        end 
+
+        i_r_set_bits_d          = 0;
+        i_r_way_index_d         = 0;
+        i_r_block_offset_bits_d = 0;
+        i_r_valid_d             = 1'b0;
         @(posedge drive_clk);
-        
-
-        for(int i = 0; i < 4; ++i) begin
-            mask = 4'b0001 << i;
-            for (int addr = 0; addr < 256; ++addr) begin
-                i_r_addr_d = addr;
-                i_r_valid_d = 1'b1;
-                i_r_mask_d = mask;
-
-                if(i == 1) begin
-                    i_stop_read_clk_d = 1;
-                end
-                else begin
-                    i_stop_read_clk_d = 0;
-                end
-
-                @(posedge drive_clk);
-            end
-        end
 
         repeat(10) @(posedge drive_clk);
     endtask
@@ -153,13 +153,15 @@ program main_program  (
 
     task drive();
     
-        i_r_addr	<=	i_r_addr_d;
+        i_r_set_bits	<=	i_r_set_bits_d;
+        i_r_way_index	<=	i_r_way_index_d;
+        i_r_block_offset_bits	<=	i_r_block_offset_bits_d;
         i_r_valid	<=	i_r_valid_d;
-        i_r_mask	<=	i_r_mask_d;
-        i_w_addr	<=	i_w_addr_d;
+        i_w_set_bits	<=	i_w_set_bits_d;
+        i_w_way_index	<=	i_w_way_index_d;
+        i_w_block_offset_bits	<=	i_w_block_offset_bits_d;
         i_w_data	<=	i_w_data_d;
         i_w_valid	<=	i_w_valid_d;
-        i_w_mask	<=	i_w_mask_d;
         arst_n	<=	arst_n_d;
         i_halt_all	<=	i_halt_all_d;
         i_stop_read_clk	<=	i_stop_read_clk_d;
@@ -169,25 +171,29 @@ program main_program  (
 
     task init();
 
-        i_r_addr_d	= 0;
+        i_r_set_bits_d	= 0;
+        i_r_way_index_d	= 0;
+        i_r_block_offset_bits_d	= 0;
         i_r_valid_d	= 0;
-        i_r_mask_d	= 0;
-        i_w_addr_d	= 0;
+        i_w_set_bits_d	= 0;
+        i_w_way_index_d	= 0;
+        i_w_block_offset_bits_d	= 0;
         i_w_data_d	= 0;
         i_w_valid_d	= 0;
-        i_w_mask_d	= 0;
         arst_n_d	= 0;
         i_halt_all_d	= 0;
         i_stop_read_clk_d	= 0;
         i_stop_write_clk_d	= 0;
 
-        i_r_addr	= 0;
+        i_r_set_bits	= 0;
+        i_r_way_index	= 0;
+        i_r_block_offset_bits	= 0;
         i_r_valid	= 0;
-        i_r_mask	= 0;
-        i_w_addr	= 0;
+        i_w_set_bits	= 0;
+        i_w_way_index	= 0;
+        i_w_block_offset_bits	= 0;
         i_w_data	= 0;
         i_w_valid	= 0;
-        i_w_mask	= 0;
         arst_n	= 0;
         i_halt_all	= 0;
         i_stop_read_clk	= 0;
@@ -205,19 +211,21 @@ endprogram
 module tb;
     
 
-    logic 	[ADDR_WIDTH-1:0]	i_r_addr;
+    logic 	[SET_BITS_WIDTH-1:0]	i_r_set_bits;
+    logic 	[$clog2(NUM_WAYS)-1:0]	i_r_way_index;
+    logic 	[B_OFFSET_BITS_WIDTH-1:0]	i_r_block_offset_bits;
     logic 			i_r_valid;
-    logic 	[NUM_BLOCKS-1:0]	i_r_mask;
-    logic 	[ADDR_WIDTH-1:0]	i_w_addr;
-    logic 	[WORD_WIDTH-1:0]	i_w_data;
+    logic 	[SET_BITS_WIDTH-1:0]	i_w_set_bits;
+    logic 	[$clog2(NUM_WAYS)-1:0]	i_w_way_index;
+    logic 	[B_OFFSET_BITS_WIDTH-3:0]	i_w_block_offset_bits;
+    logic 	[WRITE_WORD_WIDTH-1:0]	i_w_data;
     logic 			i_w_valid;
-    logic 	[NUM_BLOCKS-1:0]	i_w_mask;
     logic 			clk;
     logic 			arst_n;
     logic 			i_halt_all;
     logic 			i_stop_read_clk;
     logic 			i_stop_write_clk;
-    logic 	[WORD_WIDTH-1:0]	o_word_data;
+    logic 	[READ_WORD_WIDTH-1:0]	o_word_data;
     logic 			o_valid;
     logic 			o_ready;
 
