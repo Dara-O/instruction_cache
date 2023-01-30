@@ -41,7 +41,7 @@ module arrays_updater (
     output  wire        [MASK_WIDTH-1:0]        o_da_mask,
     output  wire                                o_da_valid,
 
-    output  wire                                o_arrays_updated_complete,
+    output  wire                                o_arrays_update_complete,
     output  wire                                o_auc_valid,
 
     output  wire                                o_ready
@@ -115,8 +115,8 @@ module arrays_updater (
         endcase
     end
 
-    assign o_arrays_updated_complete = (w_ta_update_complete & w_sa_update_complete & w_da_update_complete);
-    assign o_auc_valid = o_arrays_updated_complete & (r_state !== STATE_IDLE);
+    assign o_arrays_update_complete = (w_ta_update_complete & w_sa_update_complete & w_da_update_complete);
+    assign o_auc_valid = o_arrays_update_complete & (r_state !== STATE_IDLE);
 
     reg [$clog2(NUM_WORDS_PER_BLOCK):0]   r_da_word_counter;
     wire [$clog2(NUM_WORDS_PER_BLOCK):0]   w_max_num_words_reached = (r_da_word_counter === NUM_WORDS_PER_BLOCK);
