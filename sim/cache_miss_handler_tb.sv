@@ -1,23 +1,22 @@
 `timescale 1ns/1ps
 
-    localparam SET_BITS_WIDTH = 4;
-    localparam B_OFFSET_BITS_WIDTH = 4; //block offset bits width
-    localparam TAG_BITS_WIDTH = 8;
+localparam SET_BITS_WIDTH = 4;
+localparam B_OFFSET_BITS_WIDTH = 4; //block offset bits width
+localparam TAG_BITS_WIDTH = 8;
 
-    localparam SA_WORD_WIDTH = 4*2; // sa = Status array
-    localparam SA_SRAM_ADDR_WIDTH = 4;
+localparam SA_WORD_WIDTH = 4*2; // sa = Status array
+localparam SA_SRAM_ADDR_WIDTH = 4;
 
-    localparam TA_SRAM_WORD_WIDTH = 4*8;
-    localparam TA_SRAM_ADDR_WIDTH = 4;
+localparam TA_SRAM_WORD_WIDTH = 4*8;
+localparam TA_SRAM_ADDR_WIDTH = 4;
 
-    localparam DA_SRAM_WORD_WIDTH = 20; // DA = Data Array 
-    localparam DA_SRAM_ADDR_WIDTH = 8;
+localparam DA_SRAM_WORD_WIDTH = 20; // DA = Data Array 
+localparam DA_WRITE_WIDTH = 80; 
+localparam DA_SRAM_ADDR_WIDTH = 8;
 
-    localparam MEM_IF_ADDR = 16;
-    localparam MEM_IF_DATA = 32;
-    localparam NUM_BLOCKS = 4;
-
-    localparam MEM_BLOCK_DATA_WIDTH = 320;
+localparam MEM_IF_ADDR = 16;
+localparam MEM_IF_DATA = 40;
+localparam NUM_WAYS = 4;
 
 program main_program  (
     output	logic	 		i_cache_hit,
@@ -35,17 +34,18 @@ program main_program  (
     output	logic	 		i_sa_blocks_halt,
     output	logic	 		i_ta_blocks_halt,
     output	logic	 		i_da_blocks_halt,
-    input	logic	 [DA_SRAM_ADDR_WIDTH-1:0]	o_da_write_addr,
-    input	logic	 [DA_SRAM_WORD_WIDTH-1:0]	o_da_write_data,
-    input	logic	 [NUM_BLOCKS-1:0]	o_da_blocks_mask,
+    input	logic	 [SET_BITS_WIDTH-1:0]	o_da_set_bits,
+    input	logic	 [$clog2(NUM_WAYS)-1:0]	o_da_way_index,
+    input	logic	 [B_OFFSET_BITS_WIDTH-3:0]	o_da_block_offset_bits,
+    input	logic	 [DA_WRITE_WIDTH-1:0]	o_da_write_data,
     input	logic	 		o_da_blocks_if_valid,
     input	logic	 [TA_SRAM_ADDR_WIDTH-1:0]	o_ta_write_addr,
     input	logic	 [TA_SRAM_WORD_WIDTH-1:0]	o_ta_write_data,
-    input	logic	 [NUM_BLOCKS-1:0]	o_ta_blocks_mask,
+    input	logic	 [NUM_WAYS-1:0]	o_ta_blocks_mask,
     input	logic	 		o_ta_blocks_if_valid,
     input	logic	 [SA_SRAM_ADDR_WIDTH-1:0]	o_sa_write_addr,
     input	logic	 [SA_WORD_WIDTH-1:0]	o_sa_write_data,
-    input	logic	 [NUM_BLOCKS-1:0]	o_sa_blocks_mask,
+    input	logic	 [NUM_WAYS-1:0]	o_sa_blocks_mask,
     input	logic	 		o_sa_blocks_if_valid,
     input	logic	 [MEM_IF_ADDR-1:0]	o_mem_if_addr,
     input	logic	 		o_mem_if_req_valid,
@@ -74,17 +74,18 @@ program main_program  (
 
     
     // sampled
-    logic	 [DA_SRAM_ADDR_WIDTH-1:0]	o_da_write_addr_s;
-    logic	 [DA_SRAM_WORD_WIDTH-1:0]	o_da_write_data_s;
-    logic	 [NUM_BLOCKS-1:0]	o_da_blocks_mask_s;
+    logic	 [SET_BITS_WIDTH-1:0]	o_da_set_bits_s;
+    logic	 [$clog2(NUM_WAYS)-1:0]	o_da_way_index_s;
+    logic	 [B_OFFSET_BITS_WIDTH-3:0]	o_da_block_offset_bits_s;
+    logic	 [DA_WRITE_WIDTH-1:0]	o_da_write_data_s;
     logic	 		o_da_blocks_if_valid_s;
     logic	 [TA_SRAM_ADDR_WIDTH-1:0]	o_ta_write_addr_s;
     logic	 [TA_SRAM_WORD_WIDTH-1:0]	o_ta_write_data_s;
-    logic	 [NUM_BLOCKS-1:0]	o_ta_blocks_mask_s;
+    logic	 [NUM_WAYS-1:0]	o_ta_blocks_mask_s;
     logic	 		o_ta_blocks_if_valid_s;
     logic	 [SA_SRAM_ADDR_WIDTH-1:0]	o_sa_write_addr_s;
     logic	 [SA_WORD_WIDTH-1:0]	o_sa_write_data_s;
-    logic	 [NUM_BLOCKS-1:0]	o_sa_blocks_mask_s;
+    logic	 [NUM_WAYS-1:0]	o_sa_blocks_mask_s;
     logic	 		o_sa_blocks_if_valid_s;
     logic	 [MEM_IF_ADDR-1:0]	o_mem_if_addr_s;
     logic	 		o_mem_if_req_valid_s;
@@ -128,25 +129,28 @@ program main_program  (
         i_cache_hit_d <= 1'b0;
         i_tag_bits_d <= 8'haa;
         i_set_bits_d <= 4'h4;
-        i_block_offset_bits_d <= 4'b0;
+        i_block_offset_bits_d <= 4'b1;
 
-        i_status_array_data_d <= 8'h0;
+        i_status_array_data_d <= 8'b11_11_00_11;
         i_valid_d <= 1'b1;
 
         @(posedge drive_clk);
         i_cache_hit_d <= 1'b1;
         @(posedge sample_clk);
         wait(o_mem_if_ready === 'b1);
-        send_mem_data({10{32'haaaa_5555}});
+        send_mem_data({2{
+            40'h44444_22222, 40'haaaaa_55555,
+            40'h33333_11111, 40'haaaaa_55555
+        }});
 
-        repeat(30) @(posedge drive_clk);
+        repeat(10) @(posedge drive_clk);
     endtask
 
     task send_mem_data(
         input logic [319:0] i_data
     );
-        for(int i=0; i<10; ++i) begin
-            i_mem_if_data_d <= i_data[i*32+:32];
+        for(int i=0; i<8; ++i) begin
+            i_mem_if_data_d <= i_data[i*40+:40] ^{40{i[0]}};
             i_mem_if_valid_d <= 1'b1;
             @(posedge drive_clk);
         end
@@ -187,9 +191,10 @@ program main_program  (
 
     task sample();
     
-        o_da_write_addr_s	<=	o_da_write_addr;
+        o_da_set_bits_s	<=	o_da_set_bits;
+        o_da_way_index_s	<=	o_da_way_index;
+        o_da_block_offset_bits_s	<=	o_da_block_offset_bits;
         o_da_write_data_s	<=	o_da_write_data;
-        o_da_blocks_mask_s	<=	o_da_blocks_mask;
         o_da_blocks_if_valid_s	<=	o_da_blocks_if_valid;
         o_ta_write_addr_s	<=	o_ta_write_addr;
         o_ta_write_data_s	<=	o_ta_write_data;
@@ -287,17 +292,18 @@ module tb;
     logic 			i_sa_blocks_halt;
     logic 			i_ta_blocks_halt;
     logic 			i_da_blocks_halt;
-    logic 	[DA_SRAM_ADDR_WIDTH-1:0]	o_da_write_addr;
-    logic 	[DA_SRAM_WORD_WIDTH-1:0]	o_da_write_data;
-    logic 	[NUM_BLOCKS-1:0]	o_da_blocks_mask;
+    logic 	[SET_BITS_WIDTH-1:0]	o_da_set_bits;
+    logic 	[$clog2(NUM_WAYS)-1:0]	o_da_way_index;
+    logic 	[B_OFFSET_BITS_WIDTH-3:0]	o_da_block_offset_bits;
+    logic 	[DA_WRITE_WIDTH-1:0]	o_da_write_data;
     logic 			o_da_blocks_if_valid;
     logic 	[TA_SRAM_ADDR_WIDTH-1:0]	o_ta_write_addr;
     logic 	[TA_SRAM_WORD_WIDTH-1:0]	o_ta_write_data;
-    logic 	[NUM_BLOCKS-1:0]	o_ta_blocks_mask;
+    logic 	[NUM_WAYS-1:0]	o_ta_blocks_mask;
     logic 			o_ta_blocks_if_valid;
     logic 	[SA_SRAM_ADDR_WIDTH-1:0]	o_sa_write_addr;
     logic 	[SA_WORD_WIDTH-1:0]	o_sa_write_data;
-    logic 	[NUM_BLOCKS-1:0]	o_sa_blocks_mask;
+    logic 	[NUM_WAYS-1:0]	o_sa_blocks_mask;
     logic 			o_sa_blocks_if_valid;
     logic 	[MEM_IF_ADDR-1:0]	o_mem_if_addr;
     logic 			o_mem_if_req_valid;
