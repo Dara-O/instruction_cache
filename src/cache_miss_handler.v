@@ -1,9 +1,5 @@
 `timescale 1ns/1ps
 
-/*
-    TODO:
-        - test the module
-*/
 
 module cache_miss_handler (
     input   wire                                    i_cache_hit,
@@ -58,13 +54,13 @@ module cache_miss_handler (
     localparam B_OFFSET_BITS_WIDTH = 4; //block offset bits width
     localparam TAG_BITS_WIDTH = 8;
 
-    localparam SA_WORD_WIDTH = 4*2; // sa = Status array
+    localparam SA_WORD_WIDTH = 4*2; 
     localparam SA_SRAM_ADDR_WIDTH = 4;
 
     localparam TA_SRAM_WORD_WIDTH = 4*8;
     localparam TA_SRAM_ADDR_WIDTH = 4;
 
-    localparam DA_SRAM_WORD_WIDTH = 20; // DA = Data Array 
+    localparam DA_SRAM_WORD_WIDTH = 20; 
     localparam DA_WRITE_WIDTH = 80; 
     localparam DA_SRAM_ADDR_WIDTH = 8;
 
@@ -129,7 +125,7 @@ module cache_miss_handler (
     
     wire mc_cu_mem_data_received;
     wire mc_cu_mem_if_valid;
-    // wire mc_cu_mem_ready; // meant to tell cntrl_unit if memory_controller is ready to recieve input
+    // wire mc_cu_mem_ready; // unnecessary
     
     wire au_cu_arrays_update_complete;
     wire au_cu_auc_valid;
@@ -141,8 +137,8 @@ module cache_miss_handler (
     wire cu_send_missed_word;
     wire cu_valid; 
     wire cu_ready;
-    // wire cu_mem_if_ready; // connect me
-    // wire cu_arrays_updater_ready; // connect me
+    // wire cu_mem_if_ready; // unnecessary
+    // wire cu_arrays_updater_ready; // unnecessary
 
     assign o_miss_state = cu_miss_state;
     assign o_ready = ~(i_halt & o_miss_state);
@@ -159,7 +155,7 @@ module cache_miss_handler (
         
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(i_halt), //FIXME all the modules should be able to halt it (only when they need to be accessed but arent ready)
+        .i_halt(i_halt), //Future Note: all the modules should be able to halt it (only when they need to be accessed but arent ready)
         
         .o_miss_state(cu_miss_state),
         
@@ -227,7 +223,7 @@ module cache_miss_handler (
     
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(i_halt), //FIXME
+        .i_halt(i_halt),
 
         .i_ta_blocks_halt(i_ta_blocks_halt),
         .i_sa_blocks_halt(i_sa_blocks_halt),
