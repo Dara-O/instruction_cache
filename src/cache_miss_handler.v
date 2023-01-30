@@ -27,19 +27,20 @@ module cache_miss_handler (
     input   wire                                    i_da_blocks_halt,
 
 
-    output  wire    [DA_SRAM_ADDR_WIDTH-1:0]    o_da_write_addr,
-    output  wire    [DA_SRAM_WORD_WIDTH-1:0]    o_da_write_data, // data array
-    output  wire    [NUM_BLOCKS-1:0]            o_da_blocks_mask,
+    output  wire    [SET_BITS_WIDTH-1:0]        o_da_set_bits,
+    output  wire    [$clog2(NUM_WAYS)-1:0]      o_da_way_index,
+    output  wire    [B_OFFSET_BITS_WIDTH-3:0]   o_da_block_offset_bits,
+    output  wire    [DA_WRITE_WIDTH-1:0]        o_da_write_data, // data array
     output  wire                                o_da_blocks_if_valid, 
 
     output  wire    [TA_SRAM_ADDR_WIDTH-1:0]    o_ta_write_addr,
     output  wire    [TA_SRAM_WORD_WIDTH-1:0]    o_ta_write_data, // tag array
-    output  wire    [NUM_BLOCKS-1:0]            o_ta_blocks_mask,
+    output  wire    [NUM_WAYS-1:0]              o_ta_blocks_mask,
     output  wire                                o_ta_blocks_if_valid, 
 
     output  wire    [SA_SRAM_ADDR_WIDTH-1:0]    o_sa_write_addr,
     output  wire    [SA_WORD_WIDTH-1:0]         o_sa_write_data, // status array
-    output  wire    [NUM_BLOCKS-1:0]            o_sa_blocks_mask,
+    output  wire    [NUM_WAYS-1:0]              o_sa_blocks_mask,
     output  wire                                o_sa_blocks_if_valid, 
 
     output  wire    [MEM_IF_ADDR-1:0]           o_mem_if_addr, //memory if = interface
@@ -64,11 +65,12 @@ module cache_miss_handler (
     localparam TA_SRAM_ADDR_WIDTH = 4;
 
     localparam DA_SRAM_WORD_WIDTH = 20; // DA = Data Array 
+    localparam DA_WRITE_WIDTH = 80; 
     localparam DA_SRAM_ADDR_WIDTH = 8;
 
     localparam MEM_IF_ADDR = 16;
-    localparam MEM_IF_DATA = 32;
-    localparam NUM_BLOCKS = 4;
+    localparam MEM_IF_DATA = 40;
+    localparam NUM_WAYS = 4;
 
     localparam MEM_BLOCK_DATA_WIDTH = 320;
 
@@ -112,7 +114,7 @@ module cache_miss_handler (
         end
     end
 
-    wire [NUM_BLOCKS-1:0] lru_block_replacement_mask;
+    wire [NUM_WAYS-1:0] lru_block_replacement_mask;
     wire lru_brm_valid;
 
     lru_unit lru_unit_m(
@@ -241,11 +243,9 @@ module cache_miss_handler (
         .o_sa_mask(o_sa_blocks_mask),
         .o_sa_valid(o_sa_blocks_if_valid),
 
-        .o_da_addr(o_da_write_addr),
+        .o_da_addr({o_da_set_bits, o_da_way_index, o_da_block_offset_bits}),
         .o_da_data(o_da_write_data),
-        .o_da_mask(o_da_blocks_mask),
         .o_da_valid(o_da_blocks_if_valid),
-
 
         .o_arrays_update_complete(au_cu_arrays_update_complete),
         .o_auc_valid(au_cu_auc_valid), // arrays_update_complete_valid
