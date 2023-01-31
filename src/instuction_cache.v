@@ -1,5 +1,15 @@
 `timescale 1ns/1ps
 
+/*
+    TODO: 
+        - finish icache_stage1.v
+            - note that the restart logic and status array 
+              write arbiter should be outside icache_stage1.v
+        - cache restart logic
+        - connect all sub modules together
+        - test module
+*/
+
 module instruction_cache(
     input   wire    [ADDR_WIDTH-1:0]            i_addr,
     input   wire                                i_valid, 
@@ -22,14 +32,14 @@ module instruction_cache(
     
     localparam ADDR_WIDTH = 16;
     localparam WORD_WIDTH = 20;
-    localparam MEM_IF_DATA_WIDTH = 128;
+    localparam MEM_IF_DATA_WIDTH = 128; // FIXME
     localparam MEM_IF_ADDR_WIDTH = 16;
 
     localparam SET_BITS_WIDTH = 4;
     localparam BLOCK_OFFSET_BITS_WIDTH = 4;
     localparam TAG_BITS_WIDTH = 8;
     localparam STATUS_ARRAY_WORD_WIDTH = 4*2;
-    localparam NUM_BLOCKS = 4; // aka number of ways
+    localparam NUM_WAYS = 4;
 
     // FIXME: Instantiate reset synchronizer that asserts o_ready when reset is complete
 
@@ -95,7 +105,7 @@ module instruction_cache(
         .o_ready(ta_ready)
     );
   
-    wire [TAG_BITS_WIDTH-1:0]           s1f_tc_tag_bits;
+    wire [TAG_BITS_WIDTH-1:0]           s1f_tc_tag_bits; // s1f == stage 1 flop
     wire [SET_BITS_WIDTH-1:0]           s1f_tc_set_bits;
     wire [BLOCK_OFFSET_BITS_WIDTH-1:0]  s1f_tc_b_offset_bits;
     wire s1f_tc_valid;
@@ -117,7 +127,7 @@ module instruction_cache(
     // =======================================
     // ============ STAGE 2 BEGINS ============
 
-    wire [NUM_BLOCKS-1:0]               tc_hit_blocks;
+    wire [NUM_WAYS-1:0]
     wire                                tc_cache_hit;
     wire [TAG_BITS_WIDTH-1:0]           tc_tag_bits;
     wire [SET_BITS_WIDTH-1:0]           tc_set_bits;
