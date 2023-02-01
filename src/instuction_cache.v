@@ -2,7 +2,7 @@
 
 /*
     TODO: 
-        - finish icache_stage1.v
+        - finish icache_stage1.v, restart and sa_w_arb logic
             - note that the restart logic and status array 
               write arbiter should be outside icache_stage1.v
         - cache restart logic
@@ -36,103 +36,79 @@ module instruction_cache(
     localparam MEM_IF_ADDR_WIDTH = 16;
 
     localparam SET_BITS_WIDTH = 4;
-    localparam BLOCK_OFFSET_BITS_WIDTH = 4;
+    localparam B_OFFSET_BITS_WIDTH = 4;
     localparam TAG_BITS_WIDTH = 8;
-    localparam STATUS_ARRAY_WORD_WIDTH = 4*2;
     localparam NUM_WAYS = 4;
 
     // FIXME: Instantiate reset synchronizer that asserts o_ready when reset is complete
 
     // ============ STAGE 1 BEGINS ============
+    wire [TAG_BITS_WIDTH-1:0]       w_addr_tag_bits             = i_addr[15:8];
+    wire [SET_BITS_WIDTH-1:0]       w_addr_set_bits             = i_addr[7:4];
+    wire [B_OFFSET_BITS_WIDTH-1:0]  w_addr_block_offset_bits    = i_addr[3:0];
 
-    wire [BLOCK_OFFSET_BITS_WIDTH-1:0] w_block_offset_bits  = i_addr[3:0];
-    wire [SET_BITS_WIDTH-1:0] w_set_bits                    = i_addr[7:4];
-    wire [TAG_BITS_WIDTH-1:0] w_tag_bits                    = i_addr[15:8];  
+    wire [TAG_BITS_WIDTH-1:0]       ics1_addr_tag_bits; // ics1 == icache_stage1      
+    wire [SET_BITS_WIDTH-1:0]       ics1_addr_set_bits;         
+    wire [B_OFFSET_BITS_WIDTH-1:0]  ics1_addr_block_offset_bits;
+    wire ics1_metadata_valid;
 
-    //FIXME
-    assign o_ready = saw_ready | ta_ready;
+    localparam TA_WORD_WIDTH    = 32; // 8 bits x 4 ways
+    localparam SA_WORD_WIDTH    = 8; // 2 bits x 4 ways
+    
+    wire [TA_WORD_WIDTH-1:0]  ics1_ta_data;
+    wire ics1_ta_valid;
 
-    wire [STATUS_ARRAY_WORD_WIDTH-1:0]  saw_data;
-    wire saw_valid;
-    wire saw_ready;
+    wire [SA_WORD_WIDTH-1:0]  ics1_sa_data; 
+    wire ics1_sa_valid;
 
-    status_array_wrapper status_array_wrapper_m (
-        .i_tag(1'b0),
-        .i_r_addr(w_set_bits),
-        .i_r_valid(i_valid),
+    wire ics1_ready; // FIXME: What does this halt?
 
-        //FIXME:
-        .i_w_addr(i_w_addr),
-        .i_w_data(i_w_data),
-        .i_w_wmask(i_w_wmask),
-        .i_w_valid(i_w_valid),
+    icache_stage1 #(.METADATA_WIDTH(ADDR_WIDTH)) icache_stage1_m (
+        .i_metadata({w_addr_tag_bits, w_addr_set_bits, w_addr_block_offset_bits}),
+        .i_metadata_valid(i_valid),
+
+        // intercept from restart unit
+        .i_r_addr(i_addr_FIXME),
+        .i_r_valid(i_valid_FIXME),
+
+        .i_w_ta_addr(i_w_ta_addr),
+        .i_w_ta_data(i_w_ta_data),
+        .i_w_ta_mask(i_w_ta_mask),
+        .i_w_ta_valid(i_w_ta_valid),
+
+        // from sa_write_arb (negotiate between miss update and use-bit update)
+        .i_w_sa_addr(i_w_sa_addr),
+        .i_w_sa_data(i_w_sa_data),
+        .i_w_sa_mask(i_w_sa_mask),
+        .i_w_sa_valid(i_w_sa_valid),
+        .i_miss_state(i_miss_state),
 
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(), //FIXME:
-
-        .o_tag(),
-
-        .o_data(saw_data),
-        .o_valid(saw_valid),
-        .o_ready(saw_ready)
-    );
-
-
-    localparam TAG_ARRAY_WORD_WIDTH = 32;
-    wire [TAG_ARRAY_WORD_WIDTH-1:0] ta_data;
-    wire ta_valid;
-    wire ta_ready;
-
-    tag_array tag_array_m (
-        .i_tag(1'b0),
-        .i_r_addr(w_set_bits),
-        .i_r_valid(i_valid),
+        .i_halt(i_halt), //FIXME (global or from next stage's ready?)
         
-        // FIXME:
-        .i_w_addr(i_w_addr),
-        .i_w_data(i_w_data),
-        .i_w_wmask(i_w_wmask),
-        .i_w_valid(i_w_valid),
-        
-        .clk(clk),
-        .arst_n(arst_n),
-        .i_halt(), //FIXME
+        .o_ta_data(ics1_ta_data),
+        .o_ta_data_valid(ics1_ta_valid),
+        .o_sa_data(ics1_sa_data),
+        .o_sa_data_valid(ics1_sa_valid),
 
-        .o_tag(),
-        .o_data(ta_data),
-        .o_valid(ta_valid),
-        .o_ready(ta_ready)
+        .o_metadata({ics1_addr_tag_bits, ics1_addr_set_bits, ics1_addr_block_offset_bits}),
+        .o_metadata_valid(ics1_metadata_valid),
+
+        .o_ready(ics1_ready)
     );
   
-    wire [TAG_BITS_WIDTH-1:0]           s1f_tc_tag_bits; // s1f == stage 1 flop
-    wire [SET_BITS_WIDTH-1:0]           s1f_tc_set_bits;
-    wire [BLOCK_OFFSET_BITS_WIDTH-1:0]  s1f_tc_b_offset_bits;
-    wire s1f_tc_valid;
-
-    register #(
-        .WIDTH(TAG_BITS_WIDTH + SET_BITS_WIDTH + BLOCK_OFFSET_BITS_WIDTH+1)
-        ) stage1_flop_m (
-        .i_d({w_tag_bits, w_set_bits, w_block_offset_bits, i_valid}),
-        
-        .clk(clk),
-        .arst_n(arst_n),
-        .i_halt(),//FIXEME,
-
-        .o_q({s1f_tc_tag_bits, s1f_tc_set_bits, s1f_tc_b_offset_bits, s1f_tc_valid}),
-        .o_ready()//FIXME
-    );
 
     // ============ STAGE 1 ENDS ============
     // =======================================
     // ============ STAGE 2 BEGINS ============
 
-    wire [NUM_WAYS-1:0]
+    // wire [NUM_WAYS-1:0]
     wire                                tc_cache_hit;
     wire [TAG_BITS_WIDTH-1:0]           tc_tag_bits;
     wire [SET_BITS_WIDTH-1:0]           tc_set_bits;
-    wire [BLOCK_OFFSET_BITS_WIDTH-1:0]  tc_block_offset_bits;
-    wire [STATUS_ARRAY_WORD_WIDTH-1:0]  tc_status_array_data;
+    wire [B_OFFSET_BITS_WIDTH-1:0]      tc_block_offset_bits;
+    wire [SA_WORD_WIDTH-1:0]            tc_sa_data;
 
 
     tag_checker tc (
@@ -155,7 +131,7 @@ module instruction_cache(
       .o_tag_bits(tc_tag_bits),
       .o_set_bits(tc_set_bits),
       .o_block_offset_bits(tc_block_offset_bits),
-      .o_status_array_data(tc_status_array_data),
+      .o_status_array_data(tc_sa_data),
       
       .o_valid(),//FIXME
       .o_ready()//FIXME
