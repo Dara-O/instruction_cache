@@ -17,7 +17,6 @@ module cache_miss_handler (
     input   wire                                    arst_n,
     input   wire                                    i_halt,
 
-    input   wire                                    i_mem_if_halt,
     input   wire                                    i_sa_blocks_halt,
     input   wire                                    i_ta_blocks_halt,
     input   wire                                    i_da_blocks_halt,
