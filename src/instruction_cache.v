@@ -91,7 +91,7 @@ module instruction_cache(
     wire [NUM_WAYS-1:0]         cmh_w_sa_blocks_mask;
     wire                        cmh_w_sa_valid;
 
-    wire [TA_WORD_WIDTH-1:0]    ubu_sa_w_data;
+    wire [SA_WORD_WIDTH-1:0]    ubu_sa_w_data;
     wire [NUM_WAYS-1:0]         ubu_sa_w_mask;
     wire                        ubu_valid;
 
@@ -156,7 +156,6 @@ module instruction_cache(
         .i_w_sa_data(sawb_w_data),
         .i_w_sa_mask(sawb_w_mask),
         .i_w_sa_valid(sawb_w_valid),
-        .i_miss_state(glb_miss_state),
 
         .clk(clk),
         .arst_n(arst_n),
@@ -234,7 +233,7 @@ module instruction_cache(
     wire [SET_BITS_WIDTH-1:0]       cmh_da_set_addr;
 
     wire [$clog2(NUM_WAYS)-1:0]     cmh_da_way_index;
-    wire [B_OFFSET_BITS_WIDTH-1:0]  cmh_da_block_offset_bits;
+    wire [B_OFFSET_BITS_WIDTH-3:0]  cmh_da_block_offset_bits;
     wire [DA_WRITE_WIDTH-1:0]       cmh_da_write_data;
     wire                            cmh_da_blocks_if_valid;
 
@@ -331,7 +330,7 @@ module instruction_cache(
       .i_halt(i_halt),
 
       .o_q(cdmsr_miss_state),
-      .o_ready(o_ready)
+      .o_ready()
     );
   
 
