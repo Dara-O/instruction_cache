@@ -18,8 +18,6 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
     input   wire    [NUM_WAYS-1:0]          i_w_sa_mask,
     input   wire                            i_w_sa_valid,
 
-    input   wire                            i_miss_state,// FIXME: Do we need this?
-
     input   wire                            clk,
     input   wire                            arst_n,
     input   wire                            i_halt,
@@ -44,7 +42,7 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
     assign o_ready = ~(i_halt) & saw_ready & ta_ready;
 
     register #(
-        .WIDTH(ADDR_WIDTH+1)
+        .WIDTH(METADATA_WIDTH+1)
     ) metadata_ff (
         .i_d({i_metadata, i_metadata_valid}),
         
@@ -56,8 +54,6 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
         .o_ready()
     );
 
-    wire [SA_WORD_WIDTH-1:0]  saw_data; // saw == status array wrapper
-    wire saw_valid;
     wire saw_ready;
 
     status_array_wrapper status_array_wrapper_m (
@@ -76,13 +72,11 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
 
         .o_tag(),
 
-        .o_data(saw_data),
-        .o_valid(saw_valid),
+        .o_data(o_sa_data),
+        .o_valid(o_sa_data_valid),
         .o_ready(saw_ready)
     );
     
-    wire [TA_WORD_WIDTH-1:0] ta_data;
-    wire ta_valid;
     wire ta_ready;
 
     tag_array tag_array_m (
@@ -101,8 +95,8 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
 
         .o_tag(),
 
-        .o_data(ta_data),
-        .o_valid(ta_valid),
+        .o_data(o_ta_data),
+        .o_valid(o_ta_data_valid),
         .o_ready(ta_ready)
     );
 
