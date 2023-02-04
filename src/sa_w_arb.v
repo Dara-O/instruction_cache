@@ -28,13 +28,13 @@ module sa_w_arb(
 
     always @(*) begin
         case(i_miss_state)
-        1'b1    :   begin
+        1'b0    :   begin
             o_w_set_addr    = i_ubit_upd_sa_set_addr;
             o_w_data        = i_ubit_upd_sa_data;
             o_w_mask        = i_ubit_upd_sa_mask;
             o_w_valid       = i_ubit_upd_sa_valid;
         end
-        1'b0    :   begin
+        1'b1    :   begin
             o_w_set_addr    =   i_miss_write_set_addr;
             o_w_data        =   i_miss_write_data;
             o_w_mask        =   i_miss_write_mask;
