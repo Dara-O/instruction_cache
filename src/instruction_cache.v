@@ -1,10 +1,5 @@
 `timescale 1ns/1ps
 
-/*
-    TODO: 
-        - test module
-*/
-
 module instruction_cache(
     input   wire    [ADDR_WIDTH-1:0]            i_addr,
     input   wire                                i_valid, 
@@ -13,22 +8,25 @@ module instruction_cache(
     input   wire                                arst_n,
     input   wire                                i_halt,
 
+    // memory interface >>>
     input   wire    [MEM_IF_DATA_WIDTH-1:0]     i_mem_data,
     input   wire                                i_mem_data_valid,
+    // <<<< memory interface 
 
     output  wire    [WORD_WIDTH-1:0]            o_data,
     output  wire                                o_valid,
     output  wire                                o_ready,
 
-    // memory interface
+    // memory interface >>>
     output  wire    [MEM_IF_ADDR_WIDTH-1:0]     o_mem_addr,
     output  wire                                o_mem_req_valid,
     output  wire                                o_mem_if_ready
+    // <<<< memory interface 
 );
     
     localparam ADDR_WIDTH = 16;
     localparam WORD_WIDTH = 20;
-    localparam MEM_IF_DATA_WIDTH = 40; // FIXME
+    localparam MEM_IF_DATA_WIDTH = 40;
     localparam MEM_IF_ADDR_WIDTH = 16;
 
     localparam SET_BITS_WIDTH = 4;
@@ -44,8 +42,6 @@ module instruction_cache(
     wire tc_cache_hit;
     wire cmh_miss_state;
     wire glb_miss_state = (~tc_cache_hit)&tc_valid | cmh_miss_state;
-
-    // FIXME: Instantiate reset synchronizer that asserts o_ready when reset is complete
 
     // ============ STAGE 1 BEGINS ============
 
@@ -66,14 +62,14 @@ module instruction_cache(
         .i_curr_r_addr(i_addr),
         .i_curr_r_addr_valid(i_valid),
 
-        .i_prev_r_addr({ics1_addr_tag_bits, ics1_addr_set_bits, ics1_addr_block_offset_bits}), //FIXME
-        .i_prev_r_addr_valid(ics1_metadata_valid), //FIXME
+        .i_prev_r_addr({ics1_addr_tag_bits, ics1_addr_set_bits, ics1_addr_block_offset_bits}),
+        .i_prev_r_addr_valid(ics1_metadata_valid),
 
-        .i_miss_state(glb_miss_state),//FIXME
+        .i_miss_state(glb_miss_state),
 
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(~ics1_ready), //FIXME
+        .i_halt(~ics1_ready),
 
         .o_r_addr(ics1r_addr),
         .o_r_addr_valid(ics1r_addr_valid),
@@ -138,18 +134,16 @@ module instruction_cache(
         .i_metadata({w_addr_tag_bits, w_addr_set_bits, w_addr_block_offset_bits}),
         .i_metadata_valid(ics1r_addr_valid),
 
-        // intercept from restart unit
         .i_r_set_addr(w_addr_set_bits),
         .i_r_valid(ics1r_addr_valid),
 
-        // from miss handler
+        // from miss handler >>> 
         .i_w_ta_set_addr(cmh_w_ta_set_addr),
         .i_w_ta_data(cmh_w_ta_data),
         .i_w_ta_mask(cmh_w_ta_blocks_mask),
         .i_w_ta_valid(cmh_w_ta_valid),
+        // from miss handler <<<
 
-        // from miss handler or use bit updater
-        // from sa_write_arb (negotiate between miss update and use-bit update)
         .i_w_sa_set_addr(sawb_w_set_addr),
         .i_w_sa_data(sawb_w_data),
         .i_w_sa_mask(sawb_w_mask),
@@ -157,7 +151,7 @@ module instruction_cache(
 
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(i_halt), //FIXME (global or from next stage's ready?)
+        .i_halt(i_halt),
         
         .o_ta_data(ics1_ta_data),
         .o_ta_data_valid(ics1_ta_valid),
@@ -197,7 +191,7 @@ module instruction_cache(
 
         .clk(clk),
         .arst_n(arst_n),
-        .i_halt(cmh_miss_state), //FIXME
+        .i_halt(cmh_miss_state),
 
         .o_hit_blocks(tc_hit_blocks),
         .o_cache_hit(tc_cache_hit),
@@ -208,7 +202,7 @@ module instruction_cache(
         .o_status_array_data(tc_sa_data),
         
         .o_valid(tc_valid),
-        .o_ready(tc_ready)//FIXME
+        .o_ready(tc_ready)
     );
 
     use_bit_updater use_bit_updater_m (
@@ -321,6 +315,7 @@ module instruction_cache(
     );
 
     wire cdmsr_miss_state;
+
     register #(.WIDTH(1)) cmh_doa_miss_state_reg (
       .i_d(glb_miss_state),
 
@@ -332,7 +327,6 @@ module instruction_cache(
       .o_ready()
     );
   
-
     data_out_arb data_out_arb_m (
       .i_missed_word(cmh_missed_word),
       .i_missed_word_valid(cmh_missed_word_valid),
@@ -345,7 +339,5 @@ module instruction_cache(
       .o_cache_word(o_data),
       .o_cache_word_valid(o_valid)
     );
-  
-  
 
 endmodule
