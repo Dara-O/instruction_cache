@@ -1,49 +1,50 @@
 `timescale 1ns/1ps
 
 module arrays_updater (
-    input   wire                                i_initiate_arrays_update,
-    input   wire                                i_iau_valid,
+    input   wire                                        i_initiate_arrays_update,
+    input   wire                                        i_iau_valid,
 
-    input   wire        [SET_ADDR_WIDTH-1:0]    i_set_addr,
-    input   wire                                i_set_addr_valid,
+    input   wire        [SET_ADDR_WIDTH-1:0]            i_set_addr,
+    input   wire                                        i_set_addr_valid,
 
-    input   wire        [TAG_BITS_WIDTH-1:0]    i_tag_bits,
-    input   wire                                i_tag_bits_valid,
+    input   wire        [TAG_BITS_WIDTH-1:0]            i_tag_bits,
+    input   wire                                        i_tag_bits_valid,
 
-    input   wire        [MASK_WIDTH-1:0]        i_block_replacement_mask,
-    input   wire                                i_brm_valid, 
+    input   wire        [MASK_WIDTH-1:0]                i_block_replacement_mask,
+    input   wire                                        i_brm_valid, 
 
-    input   wire        [MEM_DATA_WIDTH-1:0]    i_mem_data,
-    input   wire                                i_mem_data_valid,
+    input   wire        [MEM_DATA_WIDTH-1:0]            i_mem_data,
+    input   wire        [$clog2(NUM_WORDS_PER_BLOCK):0] i_mem_num_words_rcvd,
+    input   wire                                        i_mem_data_valid,
 
-    input   wire                                i_miss_state,
+    input   wire                                        i_miss_state,
 
-    input   wire                                clk,
-    input   wire                                arst_n,
-    input   wire                                i_halt,
+    input   wire                                        clk,
+    input   wire                                        arst_n,
+    input   wire                                        i_halt,
 
-    input   wire                                i_ta_blocks_halt,
-    input   wire                                i_sa_blocks_halt,
-    input   wire                                i_da_blocks_halt,
+    input   wire                                        i_ta_blocks_halt,
+    input   wire                                        i_sa_blocks_halt,
+    input   wire                                        i_da_blocks_halt,
 
-    output  wire        [TA_ADDR_WIDTH-1:0]     o_ta_addr,
-    output  reg         [TA_DATA_WIDTH-1:0]     o_ta_data,
-    output  wire        [MASK_WIDTH-1:0]        o_ta_mask,
-    output  wire                                o_ta_valid,
+    output  wire        [TA_ADDR_WIDTH-1:0]             o_ta_addr,
+    output  reg         [TA_DATA_WIDTH-1:0]             o_ta_data,
+    output  wire        [MASK_WIDTH-1:0]                o_ta_mask,
+    output  wire                                        o_ta_valid,
     
-    output  wire        [SA_ADDR_WIDTH-1:0]     o_sa_addr,
-    output  reg         [SA_DATA_WIDTH-1:0]     o_sa_data,
-    output  wire        [MASK_WIDTH-1:0]        o_sa_mask,
-    output  wire                                o_sa_valid,
+    output  wire        [SA_ADDR_WIDTH-1:0]             o_sa_addr,
+    output  reg         [SA_DATA_WIDTH-1:0]             o_sa_data,
+    output  wire        [MASK_WIDTH-1:0]                o_sa_mask,
+    output  wire                                        o_sa_valid,
 
-    output  wire        [DA_ADDR_WIDTH-1:0]     o_da_addr,
-    output  reg         [DA_DATA_WIDTH-1:0]     o_da_data,
-    output  wire                                o_da_valid,
+    output  wire        [DA_ADDR_WIDTH-1:0]             o_da_addr,
+    output  reg         [DA_DATA_WIDTH-1:0]             o_da_data,
+    output  wire                                        o_da_valid,
 
-    output  wire                                o_arrays_update_complete,
-    output  wire                                o_auc_valid,
+    output  wire                                        o_arrays_update_complete,
+    output  wire                                        o_auc_valid,
 
-    output  wire                                o_ready
+    output  wire                                        o_ready
 );
 
     assign o_ready = ~(i_halt | (r_state === STATE_UPDATING_ARRAYS));
@@ -97,13 +98,17 @@ module arrays_updater (
     reg  w_sa_update_complete;
     wire w_da_update_complete;
 
+    wire w_data_is_sendable = (|i_mem_num_words_rcvd) | i_mem_data_valid;
+
+    // only increment when a 4*n words have been received
+    wire w_advance_transaction_cnt = ~i_mem_num_words_rcvd[1] & (|i_mem_num_words_rcvd[4:2]);
 
     // FSM transition logic 
     always @(*) begin
         case(r_state)
         STATE_IDLE : begin
-            w_state = (i_initiate_arrays_update & i_iau_valid & i_mem_data_valid & i_miss_state) ? STATE_UPDATING_ARRAYS :
-                                                                                                   STATE_IDLE;
+            w_state = (i_initiate_arrays_update & i_iau_valid & w_data_is_sendable & i_miss_state) ? STATE_UPDATING_ARRAYS :
+                                                                                                     STATE_IDLE;
         end 
 
         STATE_UPDATING_ARRAYS : begin
@@ -127,7 +132,10 @@ module arrays_updater (
         if(~arst_n) begin
             r_da_transactions_counter <= {$clog2(NUM_DA_TRANSACTIONS)+1{1'b0}};
         end
-        else if(~i_halt & ((w_state === STATE_UPDATING_ARRAYS) & ~i_da_blocks_halt | w_max_num_transactions_reached)) begin
+        else if(~i_halt & ((w_state === STATE_UPDATING_ARRAYS) 
+                        & w_advance_transaction_cnt 
+                        & ~i_da_blocks_halt 
+                        | w_max_num_transactions_reached)) begin
             r_da_transactions_counter <= w_max_num_transactions_reached ? {$clog2(NUM_DA_TRANSACTIONS)+1{1'b0}} :
                                                                           r_da_transactions_counter+1;
         end
@@ -156,7 +164,7 @@ module arrays_updater (
     end
 
     assign o_da_addr = {i_set_addr, w_way_index, r_da_transactions_counter[1:0]}; 
-    assign o_da_valid = (w_state === STATE_UPDATING_ARRAYS) & i_set_addr_valid & i_brm_valid & i_mem_data_valid;
+    assign o_da_valid = (w_state === STATE_UPDATING_ARRAYS) & i_set_addr_valid & i_brm_valid & w_data_is_sendable;
 
     assign w_da_update_complete = w_max_num_transactions_reached & (r_state === STATE_UPDATING_ARRAYS);
 

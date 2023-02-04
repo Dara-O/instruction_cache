@@ -68,6 +68,7 @@ module cache_miss_handler (
     localparam NUM_WAYS = 4;
 
     localparam MEM_BLOCK_DATA_WIDTH = 320;
+    localparam NUM_WORDS_P_BLOCK = 16;
 
     
 
@@ -172,6 +173,7 @@ module cache_miss_handler (
 
     wire [MEM_BLOCK_DATA_WIDTH-1:0] mc_mem_block_data;
     wire mc_mem_block_data_valid;
+    wire [$clog2(NUM_WORDS_P_BLOCK):0] mc_mem_num_words_rcvd;
 
     memory_controller mem_ctrl(
         .i_block_addr({r_tag_bits, r_set_bits, r_block_offset_bits}),
@@ -198,6 +200,7 @@ module cache_miss_handler (
         .o_ir_ready(), //mc_cu_mem_ready
 
         .o_mem_block_data(mc_mem_block_data), 
+        .o_mem_num_words_rcvd(mc_mem_num_words_rcvd),
         .o_mem_block_data_valid(mc_mem_block_data_valid)
     );
 
@@ -216,6 +219,7 @@ module cache_miss_handler (
         .i_brm_valid(lru_brm_valid),
 
         .i_mem_data(mc_mem_block_data),
+        .i_mem_num_words_rcvd(mc_mem_num_words_rcvd),
         .i_mem_data_valid(mc_mem_block_data_valid),
 
         .i_miss_state(cu_miss_state),

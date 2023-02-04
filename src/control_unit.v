@@ -70,11 +70,11 @@ module control_unit (
 
     assign o_miss_state         = (w_state !== STATE_IDLE); 
     
-    assign o_initiate_mem_req   = (w_state === STATE_MEM_REQ) & (r_state !== STATE_MEM_REQ); // (~i_cache_hit & i_valid) & (r_state === STATE_IDLE);
+    assign o_initiate_mem_req   = (w_state === STATE_MEM_REQ) & (r_state !== STATE_MEM_REQ);
     assign o_mem_if_valid       = (w_state === STATE_MEM_REQ);
     assign o_mem_if_ready       = (w_state === STATE_MEM_REQ) & ~i_halt;
 
-    assign o_initiate_array_update = (w_state === STATE_ARRAY_UPDATE) & (r_state !== STATE_ARRAY_UPDATE);
+    assign o_initiate_array_update = (w_state !== STATE_IDLE);
     assign o_send_missed_word   = (w_state === STATE_IDLE) & (r_state !== STATE_IDLE);
     
     assign o_valid = (w_state !== STATE_IDLE) | (r_state !== STATE_IDLE);
