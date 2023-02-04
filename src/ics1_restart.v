@@ -40,6 +40,30 @@ module ics1_restart(
         end
     end
 
+    reg    [ADDR_WIDTH-1:0]    r_prev_r_addr;
+    reg                        r_prev_r_addr_valid;
+    reg                        r_miss_state;
+
+    always @(posedge clk, negedge arst_n) begin
+        if(~arst_n) begin
+            r_miss_state        <= 1'b0;
+        end
+        else if(~i_halt) begin
+            r_miss_state        <= i_miss_state;
+        end
+    end
+
+    always @(posedge clk, negedge arst_n) begin
+        if(~arst_n) begin
+            r_prev_r_addr       <= {ADDR_WIDTH{1'b0}};
+            r_prev_r_addr_valid <= 1'b0;
+        end
+        else if(~i_halt & (~r_miss_state & i_miss_state)) begin
+            r_prev_r_addr       <= i_prev_r_addr;
+            r_prev_r_addr_valid <= i_prev_r_addr_valid;
+        end
+    end
+
     always @(*) begin
         case(r_state)
         STATE_IDLE  :   begin
@@ -65,10 +89,10 @@ module ics1_restart(
         end
 
         {STATE_IDLE, STATE_RESTARTING}  :   begin
-            o_r_addr = i_prev_r_addr_valid ? i_prev_r_addr : i_curr_r_addr;
-            o_r_addr_valid = i_prev_r_addr_valid | i_curr_r_addr_valid;
+            o_r_addr = r_prev_r_addr_valid ? r_prev_r_addr : i_curr_r_addr;
+            o_r_addr_valid = r_prev_r_addr_valid | i_curr_r_addr_valid;
             
-            w_curr_r_addr_ready = i_prev_r_addr_valid ? 1'b0 : 1'b1;
+            w_curr_r_addr_ready = ~r_prev_r_addr_valid;
         end
 
         {STATE_IDLE, STATE_IDLE}  :   begin
