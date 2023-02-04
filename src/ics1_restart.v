@@ -21,8 +21,8 @@ module ics1_restart(
 
     localparam ADDR_WIDTH       = 16;
 
-    localparam STATE_IDLE       = 0;
-    localparam STATE_RESTARTING = 1;
+    localparam [0:0] STATE_IDLE       = 0;
+    localparam [0:0] STATE_RESTARTING = 1;
     localparam NUM_STATES       = 2;
 
     reg w_curr_r_addr_ready;
