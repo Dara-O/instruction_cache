@@ -161,7 +161,7 @@ module memory_controller(
 
     assign o_mem_req_valid = ((w_state === STATE_MEM_REQUESTED) & r_state !== STATE_MEM_REQUESTED) ? i_block_addr_valid : 1'b0;
 
-    assign o_mem_ready = (r_state === STATE_MEM_REQUESTED) | (w_state === STATE_MEM_RECEIVING) & ~i_halt;
+    assign o_mem_ready = ((r_state === STATE_MEM_REQUESTED) | (w_state === STATE_MEM_RECEIVING)) & ~i_halt;
     assign o_mem_data_received = (w_all_words_received & (r_state === STATE_MEM_RECEIVING));
     assign o_mem_data_rcvd_valid = ~i_halt; // ideally, should be ~i_miss_state but this will cause an interface change.
 endmodule
