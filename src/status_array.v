@@ -4,8 +4,6 @@
     Status Array should be initialized after.
 */
 
-// See file for params...
-`include "../src/status_array_params.vh"
 
 module status_array #(parameter TAG_WIDTH=1) (
     // read port
@@ -28,7 +26,17 @@ module status_array #(parameter TAG_WIDTH=1) (
     output  reg                             o_valid,
     output  wire                            o_ready
 );
-    
+
+    localparam NUM_ROWS     = 16;
+    localparam ADDR_WIDTH   = 4; // $clog2(NUM_ROWS)
+    localparam NUM_BLOCKS   = 4;
+    localparam BLOCK_WIDTH  = 2;
+    localparam ROW_WIDTH    = 4*2; // NUM_BLOCKS*BLOCK_WIDTH
+
+    // for use in understanding status_array_data
+    // USE_BIT_IDX      = 0; 
+    // VALID_BIT_IDX    = 1;
+
 
     assign o_ready = ~i_halt;
 
@@ -67,7 +75,7 @@ module status_array #(parameter TAG_WIDTH=1) (
         end
     end
     
-    assign o_data =  ss_data & {ROW_WIDTH{~r_w_valid & o_valid}};
+    assign o_data =  ss_data & {ROW_WIDTH{o_valid}};
 
     // tag propagation
     always @(posedge gated_clk, negedge arst_n) begin
