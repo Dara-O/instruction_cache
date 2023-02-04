@@ -1,14 +1,14 @@
 `timescale 1ns/1ps
 
 module memory_controller(
-    input   wire    [ADDR_WIDTH-1:0]            i_block_addr, // from miss handler flop
+    input   wire    [ADDR_WIDTH-1:0]            i_block_addr, // from miss handler
     input   wire                                i_block_addr_valid,
 
     input   wire                                i_initiate_req, // from contorl unit
     input   wire                                i_ir_valid, // ir == initiate request
 
     input   wire    [MEM_DATA_WIDTH-1:0]        i_mem_data, // from memory
-    input   wire                                i_mem_data_valid, // expect to be valid for 10 cycles after first assertion
+    input   wire                                i_mem_data_valid, 
 
     input   wire                                clk,
     input   wire                                arst_n, 
@@ -20,9 +20,9 @@ module memory_controller(
 
     output  wire                                o_mem_data_received, // to control unit 
     output  wire                                o_mem_data_rcvd_valid,
-    output  wire                                o_ir_ready, // to control unit; ir == initiate request 
+    output  wire                                o_ir_ready, 
 
-    output  reg     [MEM_BLOCK_DATA_WIDTH-1:0]  o_mem_block_data, // to data dispatcher (array updater and user readout)
+    output  reg     [MEM_BLOCK_DATA_WIDTH-1:0]  o_mem_block_data, 
     output  wire                                o_mem_block_data_valid
    
 );
@@ -110,7 +110,7 @@ module memory_controller(
         end
         else if(~i_halt & i_mem_data_valid &
                 (~w_all_words_received | (w_state === STATE_MEM_RECEIVING))) begin
-            case(r_transactions_counter) // elaborated to avoid synthesizing mula multiplier
+            case(r_transactions_counter) // elaborated to avoid synthesizing multiplier
             4'd0: begin
                 o_mem_block_data[39:0] <= i_mem_data;
             end
@@ -154,7 +154,6 @@ module memory_controller(
             end
         end
     end
-    //assign o_mem_block_data_valid = (w_all_words_received & (w_state === STATE_IDLE));
 
     assign o_mem_req_addr = ((w_state === STATE_MEM_REQUESTED) & r_state !== STATE_MEM_REQUESTED)  ? i_block_addr :
                                                                                             {ADDR_WIDTH{1'b0}};
@@ -163,5 +162,5 @@ module memory_controller(
 
     assign o_mem_ready = ((r_state === STATE_MEM_REQUESTED) | (w_state === STATE_MEM_RECEIVING)) & ~i_halt;
     assign o_mem_data_received = (w_all_words_received & (r_state === STATE_MEM_RECEIVING));
-    assign o_mem_data_rcvd_valid = ~i_halt; // ideally, should be ~i_miss_state but this will cause an interface change.
+    assign o_mem_data_rcvd_valid = ~i_halt; 
 endmodule
