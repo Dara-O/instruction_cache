@@ -1,7 +1,5 @@
 `timescale 1ns/1ps
 
-`include "../src/status_array_params.vh"
-
 module status_array_initializer(
     input   wire                            clk,
     input   wire                            arst_n,
@@ -16,6 +14,16 @@ module status_array_initializer(
     output  wire                            o_init_complete,
     output  wire                            o_ready
 );
+
+    localparam NUM_ROWS     = 16;
+    localparam ADDR_WIDTH   = 4; // $clog2(NUM_ROWS)
+    localparam NUM_BLOCKS   = 4;
+    localparam BLOCK_WIDTH  = 2;
+    localparam ROW_WIDTH    = 4*2; // NUM_BLOCKS*BLOCK_WIDTH
+
+    // for use in understanding status_array_data
+    localparam USE_BIT_IDX      = 0; 
+    localparam VALID_BIT_IDX    = 1;
 
     wire gated_clk;
     clock_gater cg (
@@ -97,9 +105,9 @@ module status_array_initializer(
     // counter
     always @(posedge gated_clk, negedge arst_n) begin
         if(~arst_n) begin
-            r_counter <= {ADDR_WIDTH{1'b0}};
+            r_counter <= {ADDR_WIDTH+1{1'b0}};
         end
-        else if(~w_counter_stop_reached & r_state & _STATE_BUSY) begin
+        else if(~w_counter_stop_reached & (r_state === _STATE_BUSY)) begin
             r_counter <= r_counter + 1;
         end
     end
