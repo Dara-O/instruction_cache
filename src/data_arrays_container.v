@@ -107,7 +107,7 @@ module data_arrays_container (
         end
     end
 
-    reg [$clog2(NUM_WAYS):0]    r_r_block_offset_bits;
+    reg [$clog2(NUM_WAYS)-1:0]    r_r_block_offset_bits;
     always @(posedge clk, negedge arst_n) begin
         if(~arst_n) begin
             r_r_block_offset_bits <= {$clog2(NUM_WAYS){1'b0}};
@@ -123,15 +123,15 @@ module data_arrays_container (
             o_word_data = sram3_data;
         end
 
-        4'b10 :   begin
+        2'b10 :   begin
             o_word_data = sram2_data;
         end
         
-        4'b01 :   begin
+        2'b01 :   begin
             o_word_data = sram1_data;
         end
 
-        4'b00 :   begin
+        2'b00 :   begin
             o_word_data = sram0_data;
         end
 
