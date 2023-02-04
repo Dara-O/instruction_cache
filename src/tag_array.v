@@ -1,7 +1,5 @@
 `timescale 1ns/1ps
 
-`include "tag_array_params.vh"
-
 module tag_array #(parameter TAG_WIDTH=1) (
     // read port
     input   wire    [TAG_WIDTH-1:0]         i_tag,
@@ -24,6 +22,12 @@ module tag_array #(parameter TAG_WIDTH=1) (
     output  reg                             o_valid,
     output  wire                            o_ready
 );
+
+    localparam NUM_ROWS     = 16;
+    localparam ADDR_WIDTH   = 4; // $clog2(NUM_ROWS)
+    localparam NUM_BLOCKS   = 4;
+    localparam BLOCK_WIDTH  = 8;
+    localparam ROW_WIDTH    = 4*8; // NUM_BLOCKS*BLOCK_WIDTH
 
     assign o_ready = ~i_halt;
 
