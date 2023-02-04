@@ -1,36 +1,38 @@
 `timescale 1ns/1ps
 
 module memory_controller(
-    input   wire    [ADDR_WIDTH-1:0]            i_block_addr, // from miss handler
-    input   wire                                i_block_addr_valid,
+    input   wire    [ADDR_WIDTH-1:0]                i_block_addr, // from miss handler
+    input   wire                                    i_block_addr_valid,
 
-    input   wire                                i_initiate_req, // from contorl unit
-    input   wire                                i_ir_valid, // ir == initiate request
+    input   wire                                    i_initiate_req, // from contorl unit
+    input   wire                                    i_ir_valid, // ir == initiate request
 
-    input   wire    [MEM_DATA_WIDTH-1:0]        i_mem_data, // from memory
-    input   wire                                i_mem_data_valid, 
+    input   wire    [MEM_DATA_WIDTH-1:0]            i_mem_data, // from memory
+    input   wire                                    i_mem_data_valid, 
 
-    input   wire                                clk,
-    input   wire                                arst_n, 
-    input   wire                                i_halt, 
+    input   wire                                    clk,
+    input   wire                                    arst_n, 
+    input   wire                                    i_halt, 
 
-    output  wire    [ADDR_WIDTH-1:0]            o_mem_req_addr, // to memory
-    output  wire                                o_mem_req_valid,
-    output  wire                                o_mem_ready,
+    output  wire    [ADDR_WIDTH-1:0]                o_mem_req_addr, // to memory
+    output  wire                                    o_mem_req_valid,
+    output  wire                                    o_mem_ready,
 
-    output  wire                                o_mem_data_received, // to control unit 
-    output  wire                                o_mem_data_rcvd_valid,
-    output  wire                                o_ir_ready, 
+    output  wire                                    o_mem_data_received, // to control unit 
+    output  wire                                    o_mem_data_rcvd_valid,
+    output  wire                                    o_ir_ready, 
 
-    output  reg     [MEM_BLOCK_DATA_WIDTH-1:0]  o_mem_block_data, 
-    output  wire                                o_mem_block_data_valid
+    output  reg     [MEM_BLOCK_DATA_WIDTH-1:0]      o_mem_block_data,
+    output  wire    [$clog2(NUM_WORDS_P_BLOCK):0]   o_mem_num_words_rcvd, 
+    output  wire                                    o_mem_block_data_valid
    
 );
     localparam ADDR_WIDTH           = 16;
     localparam MEM_DATA_WIDTH       = 40;
     localparam MEM_BLOCK_DATA_WIDTH = 320;
     
-    localparam  NUM_MEM_TRANSACTIONS = 8; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*MEM_DATA_WIDTH
+    localparam  NUM_MEM_TRANSACTIONS    = 8; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*MEM_DATA_WIDTH
+    localparam  NUM_WORDS_P_BLOCK     = 16;
 
     assign o_ir_ready = ~i_halt;
 
@@ -61,6 +63,7 @@ module memory_controller(
     wire w_all_words_received;
 
     assign w_all_words_received = (r_transactions_counter === NUM_MEM_TRANSACTIONS); 
+    assign o_mem_num_words_rcvd = r_transactions_counter << 1;
 
     always @(posedge clk, negedge arst_n) begin
         if(~arst_n) begin
