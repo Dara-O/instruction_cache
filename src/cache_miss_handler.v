@@ -2,24 +2,24 @@
 
 
 module cache_miss_handler (
-    input   wire                                    i_cache_hit,
-    input   wire    [TAG_BITS_WIDTH-1:0]            i_tag_bits,
-    input   wire    [SET_BITS_WIDTH-1:0]            i_set_bits,
-    input   wire    [B_OFFSET_BITS_WIDTH-1:0]       i_block_offset_bits,
+    input   wire                                i_cache_hit,
+    input   wire    [TAG_BITS_WIDTH-1:0]        i_tag_bits,
+    input   wire    [SET_BITS_WIDTH-1:0]        i_set_bits,
+    input   wire    [B_OFFSET_BITS_WIDTH-1:0]   i_block_offset_bits,
 
-    input   wire    [SA_WORD_WIDTH-1:0]             i_status_array_data,
-    input   wire                                    i_valid,
+    input   wire    [SA_WORD_WIDTH-1:0]         i_status_array_data,
+    input   wire                                i_valid,
 
-    input   wire    [MEM_IF_DATA-1:0]               i_mem_if_data, // pre-decoded data
-    input   wire                                    i_mem_if_valid,
+    input   wire    [MEM_IF_DATA-1:0]           i_mem_if_data, // pre-decoded data
+    input   wire                                i_mem_if_valid,
 
-    input   wire                                    clk,
-    input   wire                                    arst_n,
-    input   wire                                    i_halt,
+    input   wire                                clk,
+    input   wire                                arst_n,
+    input   wire                                i_halt,
 
-    input   wire                                    i_sa_blocks_halt,
-    input   wire                                    i_ta_blocks_halt,
-    input   wire                                    i_da_blocks_halt,
+    input   wire                                i_sa_blocks_halt,
+    input   wire                                i_ta_blocks_halt,
+    input   wire                                i_da_blocks_halt,
 
 
     output  wire    [SET_BITS_WIDTH-1:0]        o_da_set_bits,
@@ -38,7 +38,7 @@ module cache_miss_handler (
     output  wire    [NUM_WAYS-1:0]              o_sa_blocks_mask,
     output  wire                                o_sa_blocks_if_valid, 
 
-    output  wire    [MEM_IF_ADDR-1:0]           o_mem_if_addr, //memory if = interface
+    output  wire    [MEM_IF_ADDR-1:0]           o_mem_if_addr, // if = interface
     output  wire                                o_mem_if_req_valid,
     output  wire                                o_mem_if_ready,
 
@@ -140,7 +140,7 @@ module cache_miss_handler (
     // wire cu_arrays_updater_ready; // unnecessary
 
     assign o_miss_state = cu_miss_state;
-    assign o_ready = ~(i_halt & o_miss_state);
+    assign o_ready = ~(i_halt | o_miss_state);
 
     control_unit ctrl_unit(
         .i_cache_hit(r_cache_hit),
