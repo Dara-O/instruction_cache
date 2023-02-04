@@ -4,9 +4,6 @@
     Bundles the initializer and the status_array
 */
 
-// See file for params...
-`include "../src/status_array_params.vh"
-
 module status_array_wrapper #(parameter TAG_WIDTH=1) (
     // read port
     input   wire    [TAG_WIDTH-1:0]         i_tag,
@@ -28,6 +25,14 @@ module status_array_wrapper #(parameter TAG_WIDTH=1) (
     output  reg                             o_valid,
     output  wire                            o_ready
 );
+
+    localparam ADDR_WIDTH   = 4; 
+    localparam NUM_BLOCKS   = 4;
+    localparam ROW_WIDTH    = 4*2; // NUM_BLOCKS*BLOCK_WIDTH
+
+    // for use in understanding status_array_data
+    // USE_BIT_IDX      = 0; 
+    // VALID_BIT_IDX    = 1;
 
     // sai == status_array_initializer output signals
     wire [ADDR_WIDTH-1:0]   sai_addr;
