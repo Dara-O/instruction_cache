@@ -65,7 +65,7 @@ module tag_checker (
     end
 
     assign o_hit_blocks = {
-        (o_tag_bits === r_ta_data[24 +: TAG_BITS_WIDTH]) & o_status_array_data[6], // valid bit is lsb
+        (o_tag_bits === r_ta_data[24 +: TAG_BITS_WIDTH]) & o_status_array_data[6],
         (o_tag_bits === r_ta_data[16 +: TAG_BITS_WIDTH]) & o_status_array_data[4],
         (o_tag_bits === r_ta_data[8  +: TAG_BITS_WIDTH]) & o_status_array_data[2],
         (o_tag_bits === r_ta_data[0  +: TAG_BITS_WIDTH]) & o_status_array_data[0]
