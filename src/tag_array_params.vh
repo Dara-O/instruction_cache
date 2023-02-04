@@ -1,3 +1,6 @@
+// This file is no longer used.
+// localparams have been copied to modules
+// file remains for users perusal
 `ifndef __TAG_ARRAY_PARAMS
 `define __TAG_ARRAY_PARAMS
     localparam NUM_ROWS = 16;
