@@ -34,14 +34,14 @@ module use_bit_updater(
                                             w_sa_use_bits[3];
 
     wire [NUM_WAYS-1:0] w_new_use_bits; 
-    assign w_new_use_bits= (w_num_ones < NUM_WAYS-1) ? (w_sa_use_bits | i_hit_blocks) : 
+    assign w_new_use_bits= (w_num_ones < NUM_WAYS) ? (w_sa_use_bits | i_hit_blocks) : 
                                                        (i_hit_blocks);
 
     assign o_sa_w_data = {
-        i_sa_data[7] ,w_new_use_bits[3],
-        i_sa_data[5] ,w_new_use_bits[2],
-        i_sa_data[3] ,w_new_use_bits[1],
-        i_sa_data[1] ,w_new_use_bits[0]
+        w_new_use_bits[3],  i_sa_data[6],
+        w_new_use_bits[2],  i_sa_data[4],
+        w_new_use_bits[1],  i_sa_data[2],
+        w_new_use_bits[0],  i_sa_data[0]
     };
 
 endmodule
