@@ -39,7 +39,7 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
     localparam SA_WORD_WIDTH    = 8; // 2 bits x 4 ways
     localparam NUM_WAYS         = 4;// same as the number of ways
 
-    assign o_ready = ~(i_halt) & saw_ready & ta_ready;
+    assign o_ready = ~i_halt & saw_ready & ta_ready;
 
     register #(
         .WIDTH(METADATA_WIDTH+1)
