@@ -98,8 +98,8 @@ module memory_controller(
             r_transactions_counter <= {($clog2(NUM_MEM_TRANSACTIONS)+1){1'b0}};
         end
         else if(~i_halt & (
-                (w_state === STATE_MEM_RECEIVING) | 
-                (r_transactions_counter !== {($clog2(NUM_MEM_TRANSACTIONS)+1){1'b0}})
+                ((w_state === STATE_MEM_RECEIVING) & i_mem_data_valid) | 
+                (r_transactions_counter === NUM_MEM_TRANSACTIONS)
             )) begin
                 
             r_transactions_counter <= (r_transactions_counter === NUM_MEM_TRANSACTIONS) ? {($clog2(NUM_MEM_TRANSACTIONS)+1){1'b0}} :
