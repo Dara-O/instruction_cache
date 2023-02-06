@@ -101,7 +101,20 @@ module arrays_updater (
     wire w_data_is_sendable = (|i_mem_num_words_rcvd) | i_mem_data_valid;
 
     // only increment when a 4*n words have been received
-    wire w_advance_transaction_cnt = ~i_mem_num_words_rcvd[1] & (|i_mem_num_words_rcvd[4:2]);
+    wire w_advance_transaction_cnt = i_mem_data_valid | (
+                            ~i_mem_num_words_rcvd[1] & (|i_mem_num_words_rcvd[4:2]) &
+                            (r_prev_mem_num_words_rcvd !== i_mem_num_words_rcvd)
+                        );
+
+    reg [$clog2(NUM_WORDS_PER_BLOCK):0] r_prev_mem_num_words_rcvd;
+    always @(posedge clk, negedge arst_n) begin
+        if(~arst_n) begin
+            r_prev_mem_num_words_rcvd <= {$clog2(NUM_WORDS_PER_BLOCK)+1{1'b0}};
+        end
+        else if(~i_halt) begin
+            r_prev_mem_num_words_rcvd <= i_mem_num_words_rcvd;
+        end
+    end
 
     // FSM transition logic 
     always @(*) begin
