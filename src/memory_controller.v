@@ -7,7 +7,7 @@ module memory_controller(
     input   wire                                    i_initiate_req, // from contorl unit
     input   wire                                    i_ir_valid, // ir == initiate request
 
-    input   wire    [MEM_DATA_WIDTH-1:0]            i_mem_data, // from memory
+    input   wire    [EXT_MEM_DATA_WIDTH-1:0]        i_mem_data, // from memory
     input   wire                                    i_mem_data_valid, 
 
     input   wire                                    clk,
@@ -28,13 +28,12 @@ module memory_controller(
    
 );
     localparam ADDR_WIDTH           = 16;
-    localparam MEM_DATA_WIDTH       = 40;
+    localparam EXT_MEM_DATA_WIDTH   = 40;
+    localparam INT_MEM_DATA_WIDTH   = 80;
     localparam MEM_BLOCK_DATA_WIDTH = 320;
     
     localparam  NUM_MEM_TRANSACTIONS    = 8; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*MEM_DATA_WIDTH
     localparam  NUM_WORDS_P_BLOCK     = 16;
-
-    assign o_ir_ready = ~i_halt;
 
     localparam STATE_IDLE           = 0;
     localparam STATE_MEM_REQUESTED  = 1;
@@ -55,6 +54,24 @@ module memory_controller(
     //         r_ir_valid      <= i_ir_valid;
     //     end
     // end
+
+    wire [INT_MEM_DATA_WIDTH-1:0]   mb_mem_data;
+    wire                            mb_mem_data_valid;
+
+    memory_buffer memory_buffer_m(
+        .i_mem_data(i_mem_data),
+        .i_mem_data_valid(i_mem_data_valid),
+
+        .clk(clk),
+        .arst_n(arst_n),
+        .i_halt(i_halt),
+
+        .o_mem_data(mb_mem_data),
+        .o_mem_data_valid(mb_mem_data_valid),
+        .o_ready(o_ir_ready)
+    );
+  
+
 
     reg [$clog2(NUM_STATES)-1:0]    r_state;
     reg [$clog2(NUM_STATES)-1:0]    w_state; 
@@ -81,7 +98,7 @@ module memory_controller(
             w_state = (i_initiate_req & i_ir_valid) ? STATE_MEM_REQUESTED : STATE_IDLE;
         end
         STATE_MEM_REQUESTED :  begin
-            w_state = (i_mem_data_valid) ? STATE_MEM_RECEIVING : STATE_MEM_REQUESTED;
+            w_state = (mb_mem_data_valid) ? STATE_MEM_RECEIVING : STATE_MEM_REQUESTED;
         end
         STATE_MEM_RECEIVING : begin
             w_state = (w_all_words_received) ? STATE_IDLE : STATE_MEM_RECEIVING;
@@ -98,7 +115,7 @@ module memory_controller(
             r_transactions_counter <= {($clog2(NUM_MEM_TRANSACTIONS)+1){1'b0}};
         end
         else if(~i_halt & (
-                ((w_state === STATE_MEM_RECEIVING) & i_mem_data_valid) | 
+                ((w_state === STATE_MEM_RECEIVING) & mb_mem_data_valid) | 
                 (r_transactions_counter === NUM_MEM_TRANSACTIONS)
             )) begin
                 
@@ -111,32 +128,20 @@ module memory_controller(
         if(~arst_n) begin
             o_mem_block_data <= {MEM_BLOCK_DATA_WIDTH{1'b0}};
         end
-        else if(~i_halt & i_mem_data_valid &
+        else if(~i_halt & mb_mem_data_valid &
                 (~w_all_words_received | (w_state === STATE_MEM_RECEIVING))) begin
             case(r_transactions_counter) // elaborated to avoid synthesizing multiplier
             4'd0: begin
-                o_mem_block_data[39:0] <= i_mem_data;
+                o_mem_block_data[79:0] <= mb_mem_data;
             end
             4'd1: begin
-                o_mem_block_data[79:40] <= i_mem_data;
+                o_mem_block_data[159:80] <= mb_mem_data;
             end
             4'd2: begin
-                o_mem_block_data[119:80] <= i_mem_data;
+                o_mem_block_data[239:160] <= mb_mem_data;
             end
             4'd3: begin
-                o_mem_block_data[159:120] <= i_mem_data;
-            end
-            4'd4: begin
-                o_mem_block_data[199:160] <= i_mem_data;
-            end
-            4'd5: begin
-                o_mem_block_data[239:200] <= i_mem_data;
-            end
-            4'd6: begin
-                o_mem_block_data[279:240] <= i_mem_data;
-            end
-            4'd7: begin
-                o_mem_block_data[319:280] <= i_mem_data;
+                o_mem_block_data[319:240] <= mb_mem_data;
             end
             endcase
         end
