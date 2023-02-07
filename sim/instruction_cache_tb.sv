@@ -143,6 +143,14 @@ program main_program  (
                 i_mem_data_d = mem_data[miss_index][i*40+:40];
                 i_mem_data_valid_d = 1'b1;
                 @(posedge drive_clk);
+
+                ++i;
+                
+                i_mem_data_d = mem_data[miss_index][i*40+:40];
+                i_mem_data_valid_d = 1'b1;
+                @(negedge drive_clk);
+                #(DRIVE_SKEW);
+                drive();
             end 
             i_mem_data_d = 40'h0;
             i_mem_data_valid_d = 1'b0;

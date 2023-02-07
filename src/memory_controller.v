@@ -32,7 +32,7 @@ module memory_controller(
     localparam INT_MEM_DATA_WIDTH   = 80;
     localparam MEM_BLOCK_DATA_WIDTH = 320;
     
-    localparam  NUM_MEM_TRANSACTIONS    = 8; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*MEM_DATA_WIDTH
+    localparam  NUM_MEM_TRANSACTIONS    = 4; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*INT_MEM_DATA_WIDTH
     localparam  NUM_WORDS_P_BLOCK     = 16;
 
     localparam STATE_IDLE           = 0;
@@ -80,7 +80,7 @@ module memory_controller(
     wire w_all_words_received;
 
     assign w_all_words_received = (r_transactions_counter === NUM_MEM_TRANSACTIONS); 
-    assign o_mem_num_words_rcvd = r_transactions_counter << 1;
+    assign o_mem_num_words_rcvd = r_transactions_counter << 2;
 
     always @(posedge clk, negedge arst_n) begin
         if(~arst_n) begin
@@ -110,7 +110,7 @@ module memory_controller(
         endcase
     end
 
-    always @(posedge clk, negedge arst_n) begin
+    always @(negedge clk, negedge arst_n) begin
         if(~arst_n) begin
             r_transactions_counter <= {($clog2(NUM_MEM_TRANSACTIONS)+1){1'b0}};
         end
@@ -124,7 +124,7 @@ module memory_controller(
         end
     end
 
-    always @(posedge clk, negedge arst_n) begin
+    always @(negedge clk, negedge arst_n) begin
         if(~arst_n) begin
             o_mem_block_data <= {MEM_BLOCK_DATA_WIDTH{1'b0}};
         end
