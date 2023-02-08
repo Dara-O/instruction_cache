@@ -1,5 +1,15 @@
 `timescale 1ns/1ps
 
+/*
+    Usage Note:
+    ---------------
+    The data received on the falling edge is always assumed to be the lower half (bits 39:0)
+    A complete packet consists of sending bits [39:0] on the falling edge and bits [79:40]...
+    ...on the rising edge. 
+    For the packet to be valid, the valid bit has to be asserted for both rising and falling edges.
+    
+*/
+
 module memory_controller(
     input   wire    [ADDR_WIDTH-1:0]                i_block_addr, // from miss handler
     input   wire                                    i_block_addr_valid,
@@ -29,10 +39,10 @@ module memory_controller(
 );
     localparam ADDR_WIDTH           = 16;
     localparam EXT_MEM_DATA_WIDTH   = 40;
-    localparam INT_MEM_DATA_WIDTH   = 80;
+    localparam INT_MEM_DATA_WIDTH   = 80; // internal memory bus data width
     localparam MEM_BLOCK_DATA_WIDTH = 320;
     
-    localparam  NUM_MEM_TRANSACTIONS    = 4; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*INT_MEM_DATA_WIDTH
+    localparam  NUM_MEM_TRANSACTIONS  = 4; //  MEM_BLOCK_DATA_WIDTH = NUM_MEM_TRANSACTIONS*INT_MEM_DATA_WIDTH
     localparam  NUM_WORDS_P_BLOCK     = 16;
 
     localparam STATE_IDLE           = 0;

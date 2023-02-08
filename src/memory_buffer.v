@@ -1,5 +1,15 @@
 `timescale 1ns/1ps
 
+/*
+    Usage Note:
+    ---------------
+    The data received on the falling edge is always assumed to be the lower half (bits 39:0)
+    A complete packet consists of sending bits [39:0] on the falling edge and bits [79:40]...
+    ...on the rising edge. 
+    For the packet to be valid, the valid bit has to be asserted for both rising and falling edges.
+    
+*/
+
 module memory_buffer(
     input   wire    [EXT_MEM_DATA_WIDTH-1:0]    i_mem_data,
     input   wire                                i_mem_data_valid,
