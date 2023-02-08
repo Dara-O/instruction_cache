@@ -185,16 +185,16 @@ module arrays_updater (
     always @(*) begin
         case(r_da_transactions_counter[1:0])
         2'd0 : begin
-            o_da_data = i_mem_data[79:0] & {DA_DATA_WIDTH{(o_da_valid)}};
+            o_da_data = i_mem_data[79:0];
         end
         2'd1 : begin
-            o_da_data = i_mem_data[159:80] & {DA_DATA_WIDTH{(o_da_valid)}};
+            o_da_data = i_mem_data[159:80];
         end
         2'd2 : begin
-            o_da_data = i_mem_data[239:160] & {DA_DATA_WIDTH{(o_da_valid)}};
+            o_da_data = i_mem_data[239:160];
         end
         2'd3 : begin
-            o_da_data = i_mem_data[319:240] & {DA_DATA_WIDTH{(o_da_valid)}};
+            o_da_data = i_mem_data[319:240];
         end
 
         default : begin
