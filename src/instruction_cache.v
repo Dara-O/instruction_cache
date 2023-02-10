@@ -148,6 +148,7 @@ module instruction_cache(
         .i_w_sa_data(sawb_w_data),
         .i_w_sa_mask(sawb_w_mask),
         .i_w_sa_valid(sawb_w_valid),
+        .i_miss_state(glb_miss_state),
 
         .clk(clk),
         .arst_n(arst_n),

@@ -18,6 +18,8 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
     input   wire    [NUM_WAYS-1:0]          i_w_sa_mask,
     input   wire                            i_w_sa_valid,
 
+    input   wire                            i_miss_state,
+
     input   wire                            clk,
     input   wire                            arst_n,
     input   wire                            i_halt,
@@ -92,6 +94,7 @@ module icache_stage1 #(parameter METADATA_WIDTH=16) (
         .clk(clk),
         .arst_n(arst_n),
         .i_halt(i_halt),
+        .i_w_clk_en(i_miss_state),
 
         .o_tag(),
 
