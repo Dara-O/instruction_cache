@@ -28,7 +28,7 @@ Sythesis, Static timing analysis, and Physical Design were performed using [Open
 The SRAMs which served as data storage elements for the cache were built using sky130 SRAM created using [OpenRAM](https://openram.org/). There a a total of six SRAM macros which are used to store the data, tag and status for each way (or block) in the cache.
 - **The Data Array** was implemented using four SRAMs. Each SRAM in the data array has 256 words with a word size of 20 bits.
 - **The Tag Array** was implemented using one SRAM. This SRAM has 256 words with a word size of 32 bits since there are 4 ways each tagged with 8 bits
-- **The status array** was implemented using one SRAM. This SRAM has 256 words with a word size of 8 bits since there are two status bits for each of the four ways. The stataus bits include a  valid bit and a use bit for pseudo-LRU replacement strategy. Valid bits were initalized to 0 upon reset.
+- **The status array** was implemented using one SRAM. This SRAM has 256 words with a word size of 8 bits since there are two status bits for each of the four ways. The stataus bits include a  valid bit and a use bit for pseudo-LRU replacement strategy. Valid bits are initalized to 0 upon reset.
 
 ### Architecture Diagrams
 #### **High-level Overview**
@@ -80,6 +80,6 @@ Visualized using <a href="https://www.klayout.de/">Klayout</a></div>
 Visualized using <a href="https://theopenroadproject.org/">OpenROAD</a> gui</div>
 
 ### Learnings Worth Sharing
-- To pre-elaborate RTL and automate file generation [perlpp](https://github.com/interpreters/perlpp) or [vpp.pl](https://github.com/interpreters/perlpp).
-- Hold violations with very little negative slack may be solved by decreasing placement density.
-- Keep Amdahl's law when evaluating design trade-offs.
+- To pre-elaborate RTL and automate file generation, use [perlpp](https://github.com/interpreters/perlpp) or [vpp.pl](https://github.com/interpreters/perlpp).
+- Hold violations with very little negative slack may be resolved by decreasing placement density.
+- Keep Amdahl's law in mind when evaluating design trade-offs.
