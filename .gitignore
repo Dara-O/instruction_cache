@@ -16,3 +16,5 @@ import/sky130_sram_1kbytes_1r1w_256x20_20.v
 *.$*
 design.xml
 synth.v
+design.stems
+design.json
