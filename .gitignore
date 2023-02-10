@@ -18,3 +18,15 @@ design.xml
 synth.v
 design.stems
 design.json
+sim/arrays_updater_tb.sv
+sim/cache_miss_handler_tb.sv
+sim/control_unit_tb.sv
+sim/data_array_tb.sv
+sim/data_arrays_container_tb.sv
+sim/ics1_restart_tb.sv
+sim/lru_unit_tb.sv
+sim/memory_controller_tb.sv
+sim/status_array_tb.sv
+sim/status_array_wrapper_tb.sv
+sim/tag_array_tb.sv
+sim/tag_checker_tb.sv
