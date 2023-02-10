@@ -16,7 +16,6 @@ module tag_array #(parameter TAG_WIDTH=1) (
     input   wire                            clk,
     input   wire                            arst_n,
     input   wire                            i_halt,
-    input   wire                            i_w_clk_en,
 
     output  reg     [TAG_WIDTH-1:0]         o_tag,
     output  reg     [ROW_WIDTH-1:0]         o_data,
@@ -33,23 +32,16 @@ module tag_array #(parameter TAG_WIDTH=1) (
     assign o_ready = ~i_halt;
 
     wire gated_clk;
-    wire gated_w_clk;
     wire [ROW_WIDTH-1:0] ss_data;
 
     clock_gater cg (
-        .clk(clk),
-        .stop_clock(i_halt),
-        .gated_clock(gated_clk)
-    );  
-
-    clock_gater cg_w (
-        .clk(clk),
-        .stop_clock(~i_w_clk_en),
-        .gated_clock(gated_w_clk)
+    .clk(clk),
+    .stop_clock(i_halt),
+    .gated_clock(gated_clk)
     );  
 
     sky130_sram_0kbytes_1r1w_16x32_8 tag_sram (
-        .clk0(gated_w_clk),
+        .clk0(gated_clk),
         .csb0(~i_w_valid),
         .wmask0(i_w_wmask),
         .addr0(i_w_addr),
